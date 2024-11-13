@@ -5,6 +5,10 @@ import { createApp } from 'vue'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 
+// 引入axios
+import axios from 'axios'
+import VueAxios from 'vue-axios'
+
 // svg插件所需要的配置代码
 import 'virtual:svg-icons-register'
 
@@ -19,6 +23,7 @@ const app = createApp(App)
 
 /* -----安装插件----- */
 app.use(ElementPlus)
+app.use(VueAxios, axios)
 app.use(globalComponents)
 
 app.mount('#app')
