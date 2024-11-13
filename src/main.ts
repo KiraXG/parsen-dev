@@ -9,6 +9,9 @@ import 'element-plus/dist/index.css'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
 
+// 引入路由器
+import router from '@/router'
+
 // svg插件所需要的配置代码
 import 'virtual:svg-icons-register'
 
@@ -24,6 +27,7 @@ const app = createApp(App)
 /* -----安装插件----- */
 app.use(ElementPlus)
 app.use(VueAxios, axios)
+app.use(router)
 app.use(globalComponents)
 
 app.mount('#app')
