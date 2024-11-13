@@ -5,6 +5,9 @@ import { createApp } from 'vue'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 
+// 引入pinia
+import pinia from './store'
+
 // 引入axios
 import axios from 'axios'
 import VueAxios from 'vue-axios'
@@ -26,6 +29,7 @@ const app = createApp(App)
 
 /* -----安装插件----- */
 app.use(ElementPlus)
+app.use(pinia)
 app.use(VueAxios, axios)
 app.use(router)
 app.use(globalComponents)
