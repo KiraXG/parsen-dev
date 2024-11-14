@@ -10,11 +10,14 @@ import type { userState } from './type'
 // 引入操作本地存储工具的方法
 import { SET_TOKEN, GET_TOKEN } from '@/utils/token.ts'
 
+import { constantRoutes } from '@/router/routes'
+
 let useUserStore = defineStore('User', {
     // 存储数据的地方
     state: (): userState => {
         return {
-            token: GET_TOKEN()
+            token: GET_TOKEN(),
+            menuList: constantRoutes
         }
     },
     // 处理逻辑的地方

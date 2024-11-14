@@ -6,7 +6,11 @@
                     <h1>欢迎使用物联网远程监控系统</h1>
                     <!-- 账号密码 -->
                     <el-form-item label="账号:" prop="username">
-                        <el-input v-model="loginForm.username" prefix-icon="UserFilled" @keyup.enter.native="login(ruleFormRef)"></el-input>
+                        <el-input
+                            v-model="loginForm.username"
+                            prefix-icon="UserFilled"
+                            @keyup.enter.native="login(ruleFormRef)"
+                        ></el-input>
                     </el-form-item>
                     <el-form-item label="密码:" prop="password">
                         <el-input
@@ -19,7 +23,13 @@
                     </el-form-item>
                     <!-- 登录按钮 -->
                     <el-form-item>
-                        <el-button type="primary" style="width: 100%" :loading="loading" @click="login(ruleFormRef)">登录</el-button>
+                        <el-button
+                            type="primary"
+                            style="width: 100%"
+                            :loading="loading"
+                            @click="login(ruleFormRef)"
+                            >登录</el-button
+                        >
                     </el-form-item>
                 </el-form>
             </el-col>

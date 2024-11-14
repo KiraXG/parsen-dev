@@ -1,5 +1,5 @@
 <template>
-    <div>home</div>
+    <div>instrumentDataManagement</div>
 </template>
 
 <script setup lang="ts"></script>

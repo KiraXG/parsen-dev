@@ -1,5 +1,5 @@
 <template>
-    <div>home</div>
+    <div>projectDataManagement</div>
 </template>
 
 <script setup lang="ts"></script>

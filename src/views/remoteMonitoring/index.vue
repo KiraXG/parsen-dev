@@ -1,5 +1,5 @@
 <template>
-    <div>home</div>
+    <div>remoteMonitoring</div>
 </template>
 
 <script setup lang="ts"></script>

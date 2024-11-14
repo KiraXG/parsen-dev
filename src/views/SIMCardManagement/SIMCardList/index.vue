@@ -1,5 +1,5 @@
 <template>
-    <div>home</div>
+    <div>SIMCardList</div>
 </template>
 
 <script setup lang="ts"></script>
