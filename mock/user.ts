@@ -4,7 +4,7 @@ function createUserList() {
             userId: '123',
             userRealName: '好好好',
             addr: 'USA',
-            username: 'trump',
+            account: 'trump',
             password: '911',
             token: '20241106',
             roles: ['平台管理员']
@@ -13,7 +13,7 @@ function createUserList() {
             userId: '456',
             userRealName: '坏坏坏',
             addr: 'CN',
-            username: 'JinPing',
+            account: 'JinPing',
             password: '13',
             token: '2592',
             roles: ['平台管理员']
@@ -26,8 +26,8 @@ export default [
         url: '/api/user/login',
         method: 'post',
         response: ({ body }) => {
-            const { username, password } = body
-            const checkUser = createUserList().find(item => item.username === username && item.password === password)
+            const { account, password } = body
+            const checkUser = createUserList().find(item => item.account === account && item.password === password)
             if (!checkUser) {
                 return {
                     code: 201,

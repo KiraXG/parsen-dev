@@ -7,7 +7,8 @@ enum API {
 }
 
 // 登录
-export const userLogin = (data: loginForm) => ajax.post<any, loginResData>(API.LOGIN_URL, data)
+export const userLogin = (params: loginForm) =>
+    ajax.post<any, loginResData>('/CompanyLogin', params)
 
 // 获取用户信息
 export const userInfo = () => ajax.get<any, userResData>(API.USERINFO_URL)

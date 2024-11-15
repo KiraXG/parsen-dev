@@ -9,10 +9,10 @@ const allGlobalComponents = {
 
 // 对外暴露插件对象
 export default {
-    install(app) {
+    install(app: any) {
         // 自定义组件
         Object.keys(allGlobalComponents).forEach((key) => {
-            app.component(key, allGlobalComponents[key])
+            app.component(key, (allGlobalComponents as any)[key])
         })
         // element-icon
         for (const [key, component] of Object.entries(ElementPlusIconsVue)) {

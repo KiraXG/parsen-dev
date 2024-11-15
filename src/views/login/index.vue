@@ -5,9 +5,9 @@
                 <el-form :model="loginForm" class="login-form" :rules="rules" ref="ruleFormRef">
                     <h1>欢迎使用物联网远程监控系统</h1>
                     <!-- 账号密码 -->
-                    <el-form-item label="账号:" prop="username">
+                    <el-form-item label="账号:" prop="account">
                         <el-input
-                            v-model="loginForm.username"
+                            v-model="loginForm.account"
                             prefix-icon="UserFilled"
                             @keyup.enter.native="login(ruleFormRef)"
                         ></el-input>
@@ -45,22 +45,11 @@ import { ElNotification } from 'element-plus'
 import useUserStore from '@/store/modules/user'
 import { getTime } from '@/utils/time'
 
-// 收集登录信息
-let loginForm = reactive({
-    username: '',
-    password: ''
-})
-
-let useStore = useUserStore()
-
-let loading = ref(false)
-
-let $router = useRouter()
-
+// el-form属性
 const ruleFormRef = ref()
-
+// form表单校验规则
 const rules = reactive({
-    username: [
+    account: [
         { required: true, message: '请输入账号', trigger: 'change' },
         { min: 2, max: 10, message: '账号长度为2-10位', trigger: 'change' }
     ],
@@ -70,35 +59,45 @@ const rules = reactive({
     ]
 })
 
+// 收集登录信息
+let loginForm = reactive({
+    account: '',
+    password: ''
+})
+// 仓库
+let useStore = useUserStore()
+// 登录按钮加载
+let loading = ref(false)
+// 路由
+let $router = useRouter()
+
 const login = async (formEl: any) => {
     // 登录按钮转圈
     loading.value = true
-    console.log(formEl)
     if (!formEl) return
-    await formEl.validate((valid: any, fields: any) => {
+    // 校验表单
+    await formEl.validate(async (valid: any, fields: any) => {
         if (valid) {
-            console.log('submit!')
+            try {
+                // 请求接口
+                await useStore.userLoginFunc(loginForm)
+                // 登录后跳转的页面
+                loading.value = false
+                $router.push('/home')
+                // 登录成功后的打招呼信息
+                ElNotification({
+                    type: 'success',
+                    message: '欢迎回来！',
+                    title: `Hi, ${getTime()}`,
+                    duration: 2000
+                })
+            } catch (error) {
+                loading.value = false
+            }
         } else {
             console.log('error submit!', fields)
         }
     })
-    try {
-        await useStore.userLoginFunc(loginForm)
-        // 登录后跳转的页面
-        setTimeout(() => {
-            loading.value = false
-            $router.push('/home')
-            // 登录成功后的打招呼信息
-            ElNotification({
-                type: 'success',
-                message: '欢迎回来！',
-                title: `Hi, ${getTime()}`,
-                duration: 1500
-            })
-        }, 500)
-    } catch (error) {
-        loading.value = false
-    }
 }
 </script>
 

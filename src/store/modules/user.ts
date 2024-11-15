@@ -10,6 +10,7 @@ import type { userState } from './type'
 // 引入操作本地存储工具的方法
 import { SET_TOKEN, GET_TOKEN } from '@/utils/token.ts'
 
+// 引入路由列表
 import { constantRoutes } from '@/router/routes'
 
 let useUserStore = defineStore('User', {
@@ -24,15 +25,10 @@ let useUserStore = defineStore('User', {
     actions: {
         // 用户登录的方法
         async userLoginFunc(data: loginForm) {
-            let result = await userLogin(data)
-            if (result.code == 200) {
-                // 存储用户的token
-                this.token = result.data.token as string
-                SET_TOKEN(result.data.token as string)
-                return '登陆成功!'
-            } else {
-                return Promise.reject(new Error(result.data.message))
-            }
+            let res = await userLogin(data)
+            // 存储用户的token
+            this.token = res.access_token
+            SET_TOKEN(res.access_token)
         }
     },
     // 计算属性

@@ -1,19 +1,27 @@
 // 登录接口发送的数据类型
 export interface loginForm {
-    username: string
+    account: string
     password: string
 }
 
 // ---------------------------------------------
 // 登录接口返回的数据类型
-interface dataType {
-    message?: string
-    token?: string
+interface companyType {
+    account: string
+    company_full_name: string
+    company_id: string
+    company_name: string
+    manage_company: string
+    manage_node: string
+    tel: string
 }
 
 export interface loginResData {
-    code: number
-    data: dataType
+    access_token: string
+    result: string
+    msg?: string | undefined
+    company?: companyType
+    err_msg?: string
 }
 
 // ---------------------------------------------
@@ -22,7 +30,7 @@ interface userInfo {
     userId: string
     userRealName: string
     addr: string
-    username: string
+    account: string
     password: string
     token: string
     roles: string[]

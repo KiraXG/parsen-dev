@@ -6,7 +6,12 @@ import useUserStore from '@/store/modules/user'
 // 使用axios对象的create方法，创建axios实例
 let ajax = axios.create({
     baseURL: import.meta.env.VITE_APP_BASE_API, // 基础路径会带上/api
-    timeout: 5000 // 超时时间设置
+    timeout: 5000, // 超时时间设置
+    headers: {
+        Accept: '*/*',
+        'Content-Type': 'text/json;charset=UTF-8',
+        'Access-Control-Allow-Origin': '*'
+    }
 })
 
 // request实例添加请求与响应拦截器
@@ -29,9 +34,18 @@ ajax.interceptors.request.use(
 // 响应拦截器
 ajax.interceptors.response.use(
     (response: any) => {
-        ElMessage.success('yes')
+        // 返回200也分正确和错误信息
+        // result为1时正确，0为有错误参数
+        if (response.data.result === '1') {
+            ElMessage.success(response.data.msg)
+            return response.data
+        } else {
+            // 出错时在提示并在控制台输出错误信息
+            ElMessage.error(response.data.err_msg)
+            console.error('Error:', response)
+            return Promise.reject(response.data.err_msg)
+        }
         // 成功回调
-        return response.data
     },
     (error: any) => {
         // 失败回调： 处理http网络错误
