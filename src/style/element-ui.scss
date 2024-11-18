@@ -1,4 +1,14 @@
 .el-input,
-.el-button {
+.el-button,
+.el-button.is-link {
     height: 36px;
+}
+
+.el-button.is-link,
+.el-button.is-circle {
+    width: 36px;
+}
+
+.el-menu {
+    border-right: none;
 }

@@ -1,12 +1,11 @@
 <template>
     <div class="layout-container">
-        <!-- 左侧菜单栏 -->
-        <div class="layout-left">
+        <!-- 顶部 -->
+        <layout-head></layout-head>
+        <div class="layout-main">
+            <!-- 左侧菜单栏 -->
             <layout-side></layout-side>
-        </div>
-        <!-- 右侧内容展示区 -->
-        <div class="layout-right">
-            <layout-head></layout-head>
+            <!-- 右侧内容展示区 -->
             <layout-main></layout-main>
         </div>
     </div>
@@ -23,12 +22,10 @@ import LayoutMain from './layout-main.vue'
     width: 100%;
     height: 100%;
     background-color: azure;
-    display: flex;
-    .layout-right {
+    .layout-main {
         width: 100%;
-        height: 100%;
+        height: calc(100% - 50px);
         display: flex;
-        flex-direction: column;
     }
 }
 </style>
