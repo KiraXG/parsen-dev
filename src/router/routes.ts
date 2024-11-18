@@ -32,7 +32,7 @@ export const constantRoutes = [
     {
         path: '/layout',
         name: 'layout',
-        component: () => import('@/layout/index.vue'), // 组件按需加载
+        component: () => import('@/layout/index.vue'),
         meta: {
             title: 'layout',
             show: true

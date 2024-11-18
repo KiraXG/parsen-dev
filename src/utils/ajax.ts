@@ -4,7 +4,7 @@ import { ElMessage } from 'element-plus'
 import useUserStore from '@/store/modules/user'
 
 // 使用axios对象的create方法，创建axios实例
-let ajax = axios.create({
+const ajax = axios.create({
     baseURL: import.meta.env.VITE_APP_BASE_API, // 基础路径会带上/api
     timeout: 5000, // 超时时间设置
     headers: {
@@ -18,7 +18,7 @@ let ajax = axios.create({
 ajax.interceptors.request.use(
     (config: any) => {
         // 获取用户相关的小仓库:获取仓库内部token，登录成功以后携带给服务器
-        let userStore = useUserStore()
+        const userStore = useUserStore()
         if (userStore.token) {
             config.headers.token = userStore.token
         }
@@ -37,7 +37,6 @@ ajax.interceptors.response.use(
         // 返回200也分正确和错误信息
         // result为1时正确，0为有错误参数
         if (response.data.result === '1') {
-            ElMessage.success(response.data.msg)
             return response.data
         } else {
             // 出错时在提示并在控制台输出错误信息
