@@ -45,6 +45,12 @@ import { ElNotification } from 'element-plus'
 import useUserStore from '@/store/modules/user'
 import { getTime } from '@/utils/time'
 
+// ------------------------------------
+// 路由
+const $router = useRouter()
+// 仓库
+const userStore = useUserStore()
+// ------------------------------------
 // el-form属性
 const ruleFormRef = ref()
 // form表单校验规则
@@ -59,17 +65,14 @@ const rules = reactive({
     ]
 })
 
+// ------------------------------------
 // 收集登录信息
-let loginForm = reactive({
+const loginForm = reactive({
     account: '',
     password: ''
 })
-// 仓库
-let useStore = useUserStore()
 // 登录按钮加载
-let loading = ref(false)
-// 路由
-let $router = useRouter()
+const loading = ref(false)
 
 const login = async (formEl: any) => {
     // 登录按钮转圈
@@ -80,7 +83,7 @@ const login = async (formEl: any) => {
         if (valid) {
             try {
                 // 请求接口
-                await useStore.userLoginFunc(loginForm)
+                await userStore.userLoginFunc(loginForm)
                 // 登录后跳转的页面
                 loading.value = false
                 $router.push('/home')
@@ -88,7 +91,8 @@ const login = async (formEl: any) => {
                 ElNotification({
                     type: 'success',
                     message: '欢迎回来！',
-                    title: `Hi, ${getTime()}`,
+                    title: `Hi, ${userStore.userInfo.company_full_name}, ${getTime()}`,
+                    offset: 50,
                     duration: 2000
                 })
             } catch (error) {
