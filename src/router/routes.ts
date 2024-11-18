@@ -58,6 +58,7 @@ export const constantRoutes = [
                     show: true,
                     keepAlive: true
                 },
+                redirect: '/instrumentData/realTimeData',
                 children: [
                     {
                         path: '/instrumentData/realTimeData',
@@ -91,6 +92,7 @@ export const constantRoutes = [
                     show: true,
                     keepAlive: true
                 },
+                redirect: '/instrumentManagement/instrumentDataManagement',
                 children: [
                     {
                         path: '/instrumentManagement/instrumentDataManagement',
@@ -116,6 +118,7 @@ export const constantRoutes = [
                     show: true,
                     keepAlive: true
                 },
+                redirect: '/projectManagement/projectDataManagement',
                 children: [
                     {
                         path: '/projectManagement/projectDataManagement',
@@ -139,6 +142,7 @@ export const constantRoutes = [
                     show: true,
                     keepAlive: true
                 },
+                redirect: '/companyManagement/companyOwnershipRelationship',
                 children: [
                     {
                         path: '/companyManagement/companyOwnershipRelationship',
@@ -175,6 +179,7 @@ export const constantRoutes = [
                     show: true,
                     keepAlive: true
                 },
+                redirect: '/SIMCardManagement/SIMCardList',
                 children: [
                     {
                         path: '/SIMCardManagement/SIMCardList',

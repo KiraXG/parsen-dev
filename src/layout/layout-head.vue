@@ -6,7 +6,15 @@
                 <img src="@/assets/images/ps.png" width="20px" alt="" />
                 <div class="side-head-title">远程监控系统</div>
             </div>
-            <div>导航</div>
+            <el-breadcrumb separator-icon="ArrowRight">
+                <!-- 在 el-breadcrumb-item 上添加 :to="item.path" 属性可以实现点击面包屑跳转页面 -->
+                <el-breadcrumb-item v-for="(item, index) in $route.matched.slice(1)" :key="index">
+                    <el-icon v-if="item.meta.icon">
+                        <component :is="item.meta.icon"></component>
+                    </el-icon>
+                    <span>{{ item.meta.title }}</span>
+                </el-breadcrumb-item>
+            </el-breadcrumb>
         </div>
         <div class="head-right">
             <div class="right-userInfo">您好，{{ userInfo.company_full_name }}</div>
@@ -17,14 +25,16 @@
 
 <script setup lang="ts">
 import { toRef } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import useUserStore from '@/store/modules/user'
-import { useRouter } from 'vue-router'
+
+const $route: any = useRoute()
+const $router: any = useRouter()
 
 // 通过toRef将person对象中的gender属性取出，且依然保持响应式的能力
 const userInfo: any = toRef(useUserStore(), 'userInfo')
 
 // 退出登录
-const $router = useRouter()
 const logout = () => {
     $router.push('/login')
 }
