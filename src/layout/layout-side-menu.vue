@@ -1,7 +1,7 @@
 <template>
     <template v-for="item in menuList">
         <!-- 没有子级菜单 -->
-        <el-menu-item v-if="!item.children" :index="item.path">
+        <el-menu-item v-if="!item.children" :index="item.path" @click="userStore.addTab(item)">
             <!-- 图标 -->
             <el-icon>
                 <component :is="item.meta.icon" />
@@ -22,7 +22,7 @@
             <el-menu-item
                 v-for="cItem in item.children"
                 :index="cItem.path"
-                style="background-color: rgb(102.2, 177.4, 255)"
+                @click="userStore.addTab(cItem)"
             >
                 <template #title>{{ cItem.meta.title }}</template>
             </el-menu-item>
@@ -31,12 +31,14 @@
 </template>
 
 <script setup lang="ts">
+import useUserStore from '@/store/modules/user'
 defineProps({
     menuList: {
         type: Array as any,
         default: []
     }
 })
+const userStore: any = useUserStore()
 </script>
 
 <style lang="scss" scoped></style>

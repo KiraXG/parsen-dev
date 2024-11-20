@@ -16,6 +16,7 @@
                 </el-breadcrumb-item>
             </el-breadcrumb>
         </div>
+        <!-- 登录后打招呼 -->
         <div class="head-right">
             <div class="right-userInfo">您好，{{ userInfo.company_full_name }}</div>
             <el-button type="primary" icon="SwitchButton" circle @click="logout" />
@@ -37,6 +38,13 @@ const userInfo: any = toRef(useUserStore(), 'userInfo')
 // 退出登录
 const logout = () => {
     $router.push('/login')
+    // 清空store存储
+    useUserStore().resetStore()
+    setTimeout(() => {
+        // 清空本地和会话存储
+        localStorage.clear()
+        sessionStorage.clear()
+    })
 }
 </script>
 

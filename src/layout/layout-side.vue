@@ -12,8 +12,9 @@
                 使用 default-active 来设置加载时的激活项 -->
             <el-menu
                 router
+                @select="handleSelect"
                 :collapse="isCollapse"
-                default-active="/home"
+                :default-active="userStore.activeMenu"
                 background-color="rgb(79, 165, 250)"
                 text-color="#fff"
                 active-text-color="#313131"
@@ -32,14 +33,22 @@ import useUserStore from '@/store/modules/user'
 import { storeToRefs } from 'pinia'
 import useSettingStore from '@/store/modules/setting'
 
+const userStore: any = useUserStore()
+
 // 过滤菜单
-const menuList = useUserStore().menuList.filter((item) => item.name === 'layout')[0]?.children
+const menuList = userStore.menuList.filter((item: any) => item.name === 'layout')[0]?.children
 
 // 获取仓库里存储的数据
 const settingStore = useSettingStore()
 const { isCollapse, menuIcon, content } = storeToRefs(settingStore)
 const menuCol = () => {
     settingStore.menuCol()
+}
+
+// 点击更新选中的tab和menu
+function handleSelect(key: any) {
+    userStore.updateState(['editableTabsValue', key])
+    userStore.updateState(['activeMenu', key])
 }
 </script>
 

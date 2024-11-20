@@ -16,7 +16,7 @@ import VueAxios from 'vue-axios'
 import router from '@/router'
 
 // svg插件所需要的配置代码
-import 'virtual:svg-icons-register'
+// import 'virtual:svg-icons-register'
 
 // 全局组件
 import globalComponents from '@/components/index.ts'

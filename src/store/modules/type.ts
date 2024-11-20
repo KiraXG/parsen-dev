@@ -5,6 +5,10 @@ export interface userState {
     token: string
     userInfo: companyType
     menuList: RouteRecordRaw[]
+    activeMenu: string
+    editableTabsValue: string
+    editableTabs: object[]
+    tabRouterList: object[]
 }
 
 // settingStore里state的数据类型

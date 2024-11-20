@@ -12,6 +12,9 @@ const useSettingStore = defineStore('Setting', {
             this.isCollapse = !this.isCollapse
         }
     },
+    persist: {
+        storage: sessionStorage
+    },
     getters: {
         menuIcon(state) {
             // 菜单图标

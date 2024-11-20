@@ -9,10 +9,21 @@
     width: 36px;
 }
 
+// 菜单设值
 .el-menu {
     border-right: none;
 }
 
+// 有子级菜单
+.el-sub-menu li {
+    background-color: rgb(99, 174, 255);
+}
+
+.el-sub-menu li:hover {
+    background-color: #83bdff;
+}
+
+// 面包屑导航
 .el-breadcrumb__inner {
     display: flex;
     justify-content: center;
@@ -26,7 +37,7 @@
 .el-breadcrumb__inner,
 .el-breadcrumb__separator,
 .el-menu-item.is-active {
-    color: #1D1E1F;
+    color: #282b31;
 }
 
 .el-breadcrumb__inner.is-link:hover,
@@ -39,4 +50,17 @@
 .el-breadcrumb__item:last-child .el-breadcrumb__inner,
 .el-breadcrumb__item:last-child .el-breadcrumb__inner:hover {
     cursor: default;
+}
+
+// 第一个tab页编辑键隐藏掉
+.el-tabs__nav .el-tabs__item:nth-child(1) {
+    padding: 0 34px;
+}
+
+.el-tabs__nav .el-tabs__item:nth-child(1) i {
+    display: none;
+}
+
+.el-tabs--border-card>.el-tabs__header .el-tabs__item {
+    border-right: 1px solid #eeeeee;
 }

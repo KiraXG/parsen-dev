@@ -21,11 +21,11 @@ import LayoutMain from './layout-main.vue'
 .layout-container {
     width: 100%;
     height: 100%;
-    background-color: azure;
     .layout-main {
         width: 100%;
-        height: calc(100% - 50px);
+        height: calc(100% - 50px); // 减去layout-head(50px)高度
         display: flex;
+        overflow: auto;
     }
 }
 </style>

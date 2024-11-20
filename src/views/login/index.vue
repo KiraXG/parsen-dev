@@ -43,7 +43,7 @@ import { useRouter } from 'vue-router'
 import { ElNotification } from 'element-plus'
 
 import useUserStore from '@/store/modules/user'
-import { getTime } from '@/utils/time'
+import { getTime } from '@/utils'
 
 // ------------------------------------
 // 路由
@@ -110,9 +110,9 @@ const login = async (formEl: any) => {
     width: 100%;
     height: 100%;
     // background-image: url('@/assets/images/login-bg.jpg');
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: 5%;
+    // background-repeat: no-repeat;
+    // background-size: cover;
+    // background-position: 5%;
     .login-row {
         height: 100%;
         .login-col {

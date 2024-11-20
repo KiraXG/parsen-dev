@@ -1,3 +1,4 @@
+// 判定当前时间是何时
 export const getTime = () => {
     let message = ''
     let hours = new Date().getHours()
