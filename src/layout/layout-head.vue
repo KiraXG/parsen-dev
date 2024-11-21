@@ -3,7 +3,7 @@
         <div class="head-left">
             <!-- 顶部图标及名称 -->
             <div class="left-title">
-                <img src="@/assets/images/ps.png" width="20px" alt="" />
+                <!-- <img src="@/assets/images/ps.png" width="20px" alt="" /> -->
                 <div class="side-head-title">远程监控系统</div>
             </div>
             <el-breadcrumb separator-icon="ArrowRight">
@@ -62,15 +62,15 @@ const logout = () => {
         .left-title {
             width: 200px;
             height: 50px;
+            margin-right: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #409eff;
             img {
                 padding-right: 10px;
             }
             .side-head-title {
-                font-size: 18px;
+                font-size: 16px;
                 color: rgb(255, 255, 255);
                 font-weight: 400;
             }

@@ -16,11 +16,15 @@
 
 // 有子级菜单
 .el-sub-menu li {
-    background-color: rgb(99, 174, 255);
+    background-color: #80bdff;
 }
 
 .el-sub-menu li:hover {
-    background-color: #83bdff;
+    background-color: #3375b9;
+}
+
+.el-sub-menu .el-menu-item.is-active {
+    background-color: #c1defd;
 }
 
 // 面包屑导航
@@ -35,8 +39,7 @@
 }
 
 .el-breadcrumb__inner,
-.el-breadcrumb__separator,
-.el-menu-item.is-active {
+.el-breadcrumb__separator {
     color: #282b31;
 }
 
@@ -61,6 +64,6 @@
     display: none;
 }
 
-.el-tabs--border-card>.el-tabs__header .el-tabs__item {
+.el-tabs--border-card > .el-tabs__header .el-tabs__item {
     border-right: 1px solid #eeeeee;
 }

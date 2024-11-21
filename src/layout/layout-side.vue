@@ -15,7 +15,7 @@
                 @select="handleSelect"
                 :collapse="isCollapse"
                 :default-active="userStore.activeMenu"
-                background-color="rgb(79, 165, 250)"
+                background-color="#4fa5fa"
                 text-color="#fff"
                 active-text-color="#313131"
             >
@@ -55,7 +55,7 @@ function handleSelect(key: any) {
 <style lang="scss" scoped>
 .side-container {
     height: 100%;
-    background-color: rgb(79, 165, 250);
+    background-color: #4fa5fa;
     .menu-collapse {
         height: 28px;
         padding: 12px 0 0 22px;
