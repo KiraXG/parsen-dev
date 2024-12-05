@@ -176,6 +176,7 @@ const search = (val: any) => {
 const reset = () => {
     curSearchParams.value = {}
     curTableData.value = _tableData.value
+    emit('getCurTableData', { curTableData })
 }
 /* -------------------- 表格按钮 -------------------- */
 
