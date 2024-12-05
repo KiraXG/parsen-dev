@@ -12,7 +12,7 @@ const router = createRouter({
     scrollBehavior(to, from, savedPosition) {
         let el = document.querySelector('.container') as any
         // 记录跳转前的滚动条高度
-        scrollRouter[from.path] = el.scrollTop || 0
+        scrollRouter[from.path] = el?.scrollTop || 0
         // console.log('*************');
         // console.log('to:---', to.path, ': ', scrollRouter[to.path]);
         // console.log('from:---', from.path, ': ', scrollRouter[from.path]);

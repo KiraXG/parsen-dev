@@ -28,3 +28,37 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background-color: rgb(172, 172, 172); // 设置鼠标放在滑块上的颜色
 }
+
+/* custom card */
+.card {
+    box-sizing: border-box;
+    padding: 20px;
+    overflow-x: hidden;
+    background-color: var(--el-bg-color);
+    border: 1px solid var(--el-border-color-light);
+    border-radius: 6px;
+    box-shadow: 0 0 12px rgb(0 0 0 / 5%);
+}
+
+.table-box,
+.table-main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+
+    // 表格 header 样式
+    .table-header {
+        .header-button-lf {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px 12px;
+            margin-bottom: 15px;
+            float: left;
+            .el-button:not(.el-input .el-button) {
+                margin-left: 0;
+            }
+        }
+    }
+}

@@ -23,24 +23,3 @@ export interface loginResData {
     company?: companyType
     err_msg?: string
 }
-
-// ---------------------------------------------
-// 定义服务器返回的用户数据类型
-interface userInfo {
-    userId: string
-    userRealName: string
-    addr: string
-    account: string
-    password: string
-    token: string
-    roles: string[]
-}
-
-interface user {
-    checkUser: userInfo
-}
-
-export interface userResData {
-    code: number
-    data: user
-}

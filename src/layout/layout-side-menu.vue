@@ -19,13 +19,15 @@
                 </el-icon>
                 <span>{{ item.meta.title }}</span>
             </template>
-            <el-menu-item
-                v-for="cItem in item.children"
-                :index="cItem.path"
-                @click="userStore.addTab(cItem)"
-            >
-                <template #title>{{ cItem.meta.title }}</template>
-            </el-menu-item>
+            <template v-for="cItem in item.children">
+                <el-menu-item
+                    v-if="cItem.meta.show"
+                    :index="cItem.path"
+                    @click="userStore.addTab(cItem)"
+                >
+                    <template #title>{{ cItem.meta.title }}</template>
+                </el-menu-item>
+            </template>
         </el-sub-menu>
     </template>
 </template>

@@ -6,10 +6,9 @@ import useUserStore from '@/store/modules/user'
 // 使用axios对象的create方法，创建axios实例
 const ajax = axios.create({
     baseURL: import.meta.env.VITE_APP_BASE_API, // 基础路径会带上/api
-    timeout: 5000, // 超时时间设置
+    timeout: 30000, // 超时时间设置
     headers: {
         Accept: '*/*',
-        'Content-Type': 'text/json;charset=UTF-8',
         'Access-Control-Allow-Origin': '*'
     }
 })
@@ -17,6 +16,11 @@ const ajax = axios.create({
 // request实例添加请求与响应拦截器
 ajax.interceptors.request.use(
     (config: any) => {
+        if (config.url === '/CompanyLogin') {
+            config.headers['Content-Type'] = 'text/json;charset=UTF-8'
+        } else {
+            config.headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=UTF-8'
+        }
         // 获取用户相关的小仓库:获取仓库内部token，登录成功以后携带给服务器
         const userStore = useUserStore()
         if (userStore.token) {

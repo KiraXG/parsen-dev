@@ -3,7 +3,9 @@ import { createApp } from 'vue'
 /* -----引入插件----- */
 // 引入element-plus
 import ElementPlus from 'element-plus'
+import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import 'element-plus/dist/index.css'
+import 'dayjs/locale/zh-cn'
 
 // 引入pinia
 import pinia from './store'
@@ -22,13 +24,16 @@ import router from '@/router'
 import globalComponents from '@/components/index.ts'
 
 // 引入样式
+
+// iconfont css
+import '@/assets/iconfont/iconfont.scss'
 import '@/style/index.scss'
 import App from '@/App.vue'
 
 const app = createApp(App)
 
 /* -----安装插件----- */
-app.use(ElementPlus)
+app.use(ElementPlus, { locale: zhCn })
 app.use(pinia)
 app.use(VueAxios, axios)
 app.use(router)

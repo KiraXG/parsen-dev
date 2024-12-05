@@ -1,10 +1,18 @@
 // 引入组件
 import SvgIcon from './svg-icon.vue'
+import PsTree from './ps-ui/ps-tree.vue'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import PsSearch from './ps-ui/ps-search.vue'
+import PsPagination from './ps-ui/ps-pagination.vue'
+import PsSearchTable from './ps-ui/ps-search-table.vue'
 
 // 整合到一个对象中
 const allGlobalComponents = {
-    SvgIcon
+    SvgIcon,
+    PsTree,
+    PsSearch,
+    PsPagination,
+    PsSearchTable,
 }
 
 // 对外暴露插件对象

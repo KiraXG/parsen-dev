@@ -1,6 +1,5 @@
 <!--通用布局头部内容-->
 <template>
-    <!-- <div class="main-container"> -->
     <el-tabs
         v-model="userStore.editableTabsValue"
         type="border-card"
@@ -66,7 +65,6 @@
             <!-- 点击路由展示的内容 -->
         </el-tab-pane>
     </el-tabs>
-    <!-- </div> -->
 </template>
 
 <script setup lang="ts">

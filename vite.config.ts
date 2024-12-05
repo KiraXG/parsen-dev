@@ -3,11 +3,12 @@ import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 import { viteMockServe } from 'vite-plugin-mock'
+import vueJsx from "@vitejs/plugin-vue-jsx";
 
 export default defineConfig(({ command }): any => {  // command用于获取当前开发环境
   return {
     publicPath: '/', //这个路径根据自己的情况定，默认就填"/"
-    plugins: [vue(),
+    plugins: [vue(), vueJsx(),
     // svg插件配置
     createSvgIconsPlugin({
       iconDirs: [path.resolve(process.cwd(), 'src/assets/icons')],
