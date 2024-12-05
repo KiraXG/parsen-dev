@@ -3,7 +3,7 @@
         <div class="home-left">
             <company-tree
                 ref="companyTree"
-                @echartsLoading="echartsLoading"
+                @dataLoading="dataLoading"
                 @getTreeData="getTreeData"
                 @getNodeClickData="getNodeClickData"
             ></company-tree>
@@ -47,14 +47,13 @@ const getNodeClickData = (params: any) => {
     draw()
 }
 
-// #region ********** start 处理echarts图表**********
-
-// echarts区域加载样式
+// 加载样式
 const loading = ref(false)
-const echartsLoading = (params: any) => {
+const dataLoading = (params: any) => {
     loading.value = params.loading.value
 }
 
+// #region ********** start 处理echarts图表**********
 const chartsData: any = ref() // 图表数据arr
 const chartsDom: any = reactive([]) // 图表dom arr
 const chartsName: any = ['company', 'item', 'node', 'alarm', 'state']

@@ -43,7 +43,8 @@ defineProps({
 const emit = defineEmits<{
     getTreeData: [{ treeData: object[]; companyCount: number; itemCount: number }]
     getNodeClickData: [{ checkData: object; curCheckData: object[]; alarmCount: number }]
-    echartsLoading: [{ loading: object }]
+    dataLoading: [{ loading: object }]
+    getTreeNodeClick: [{ project: object }]
 }>()
 
 // #region ********** start 处理左侧树列表数据 **********
@@ -120,7 +121,7 @@ const nodeChecked: any = ref([])
 const loading = ref(false)
 const companyTreeNodeCheck = async (_company: any, check: any) => {
     loading.value = true
-    emit('echartsLoading', { loading })
+    emit('dataLoading', { loading })
     // 过滤类型为p的节点 [list]
     const curCompanyChecked = check.checkedNodes.filter((item: any) => item.type === 'p')
     // console.log('当前点击类型为p的节点', curCompanyChecked)
@@ -160,7 +161,7 @@ const companyTreeNodeCheck = async (_company: any, check: any) => {
     }
     console.log('当前点击project列表', curCheckData.value)
     loading.value = false
-    emit('echartsLoading', { loading })
+    emit('dataLoading', { loading })
     emit('getNodeClickData', { checkData, curCheckData, alarmCount })
 }
 
@@ -181,7 +182,11 @@ const filterCompanyTreeFunc = (value: any, data: any) => {
 }
 
 // 当节点被点击的时候触发
-const companyTreeNodeClick = async (company: any, node: any, tree: any) => {}
+const companyTreeNodeClick = async (project: any) => {
+    if (project.type === 'p') {
+        emit('getTreeNodeClick', { project })
+    }
+}
 </script>
 
 <style lang="scss" scoped></style>
