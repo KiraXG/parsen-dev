@@ -155,25 +155,24 @@ const curSearchParams = ref({})
 // 搜索
 const search = (val: any) => {
     curSearchParams.value = val.searchParams.value
-    // 筛选后的表格数据
-    filterTableData.value = _tableData.value.filter((item: any) => {
-        return item[Object.keys(curSearchParams.value)[0]].includes(
-            Object.values(curSearchParams.value)[0]
-        )
-    })
     // 判断有没有搜索参数
     if (!Object.values(curSearchParams.value)[0]) {
         // 没有的话展示总的
         curTableData.value = _tableData.value
     } else {
         // 有的话展示筛选的
-        curTableData.value = filterTableData.value
+        curTableData.value = _tableData.value.filter((item: any) => {
+        return item[Object.keys(curSearchParams.value)[0]].includes(
+            Object.values(curSearchParams.value)[0]
+        )
+    })
     }
 }
 
 // 重置
 const reset = () => {
     curSearchParams.value = {}
+    curTableData.value = _tableData.value
 }
 /* -------------------- 表格按钮 -------------------- */
 
@@ -197,8 +196,6 @@ watch(
     { deep: true }
 )
 
-// 筛选后的表格数据
-const filterTableData = ref([])
 // 当前表格数据总量
 const total = computed(() => curTableData.value.length)
 
