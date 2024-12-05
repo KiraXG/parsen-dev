@@ -1,7 +1,341 @@
 <template>
-    <div>realTimeData</div>
+    <div
+        class="realTimeData-container"
+        v-loading="loading"
+        element-loading-text="正在加载数据，请稍等..."
+    >
+        <div class="realTimeData-left">
+            <el-input
+                class="filter-input"
+                v-model="filterText"
+                clearable
+                placeholder="请输入关键字过滤"
+            ></el-input>
+            <company-tree
+                ref="companyTree"
+                class="companyTree"
+                :filterText="filterText"
+                @echartsLoading="echartsLoading"
+                @getNodeClickData="getNodeClickData"
+            ></company-tree>
+            <el-button class="warning-button">详细报警信息</el-button>
+            <div id="alarm-preview" class="card alarm-preview"></div>
+        </div>
+        <div class="realTimeData-right">
+            <ps-search-table
+                rowKey="node_id"
+                :border="true"
+                :columns="fieldLists"
+                :fieldLists="fieldLists"
+                :tableData="_tableData"
+            >
+                <template #tableHeader>
+                    <el-button type="primary" @click="outPutList">导出</el-button>
+                </template>
+                <!-- 仪表名称 -->
+                <template #node_name="{ row }">
+                    <div v-if="includeNodeName(row.node_name)" class="withPic">
+                        <img :src="getImage(row.node_name)" class="picInline" />
+                        <span>{{ row.node_name }}</span>
+                    </div>
+                    <div v-else>
+                        <span>{{ row.node_name }}</span>
+                    </div>
+                </template>
+                <!-- 数据 -->
+                <template #node_data="{ row }">
+                    <div v-if="row.node_data">
+                        <div>
+                            时间：{{
+                                row.node_data?.date
+                                    ? formatDate(row.node_data.date, 'YYYY-MM-DD HH:mm')
+                                    : '- -'
+                            }}
+                        </div>
+                        <div class="tag-container">
+                            <el-tag
+                                v-for="(item, index) in nodeData(row.node_data)"
+                                :key="index"
+                                :type="tagType(index)"
+                                style="margin-bottom: 5px"
+                                >{{ item }}</el-tag
+                            >
+                        </div>
+                    </div>
+                </template>
+
+                <template #operation="scope">
+                    <el-button
+                        type="primary"
+                        link
+                        icon="DocumentChecked"
+                        style="margin-right: 38px"
+                        >仪表详情</el-button
+                    >
+                    <el-button type="danger" icon="Calendar" link
+                        >报警记录</el-button
+                    >
+                </template>
+            </ps-search-table>
+        </div>
+    </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { ref, reactive, computed, onMounted } from 'vue'
+import CompanyTree from '@/components/company-tree/index.vue'
+import { alarmOption } from './realTimeData-echats'
+import { formatDate, UNIT_TABLE, tagTypes } from '@/utils'
+import * as echarts from 'echarts'
 
-<style lang="scss" scoped></style>
+// #region ********** start 左侧树方法 **********
+const curCheckData: any = ref([]) // 当前点击节点的project总数
+const alarmCount: any = ref(0) // 仪表总数
+const filterText = ref('') // 筛选数据
+
+// 点击树的多选框传过来的数据
+const getNodeClickData = (params: any) => {
+    curCheckData.value = params.curCheckData.value
+    alarmCount.value = params.alarmCount.value
+    setTableData(curCheckData)
+    draw()
+}
+// #endregion ********** end 左侧树方法 **********
+
+// #region ********** start 处理echarts图表 **********
+// echarts区域加载样式
+const loading = ref(false)
+const echartsLoading = (params: any) => {
+    loading.value = params.loading.value
+}
+
+// 初始化图表
+const chartsDom: any = ref(null)
+const initCharts = () => {
+    const domInstance = document.getElementById('alarm-preview')
+    chartsDom.value = echarts.init(domInstance)
+    window.addEventListener('resize', () => {
+        chartsDom.value.resize()
+    })
+    draw()
+}
+
+// 仪表异常
+const getAlarmCount = () => {
+    let number = 0
+    for (let item of curCheckData.value) {
+        if (item.alarm_pop != '0') number++
+    }
+    return number
+}
+
+// 渲染数据
+const draw = () => {
+    // 仪表详情
+    let alarm = [
+        { name: '正常', value: alarmCount.value - getAlarmCount() },
+        { name: '异常', value: getAlarmCount() }
+    ]
+    chartsDom.value.setOption(alarmOption(alarm))
+}
+// #endregion ********** end 处理echarts图表 **********
+
+// 导出按钮
+const outPutList = () => {
+    let listData: any = []
+    let now: any = new Date()
+    curCheckData.value.forEach((item: any) => {
+        let companyName = item['company_name'] ? item['company_name'] : ''
+        let projectName = item['project_name'] ? item['project_name'].replace(',', ':') : ''
+        let nodeName = item['node_name'] ? item['node_name'] : ''
+        let nodeData = item['node_data'] ? item['node_data'] : ''
+        let date = nodeData['date'] ? nodeData['date'] : ''
+        let group = item['group'] ? item['group'] : ''
+        let imei = item['imei'] ? item['imei'] : ''
+        let iccid = item['iccid'] ? item['iccid'] : ''
+        listData.push({
+            company: companyName,
+            project: projectName,
+            nodeName,
+            imei,
+            group,
+            iccid,
+            lastTime: date ? formatDate(date, 'YYYY-MM-DD HH:mm:ss') : '',
+            state: (now - +new Date(date)) / 1000 / 60 > item['send_gap'] * 3 ? '离线' : '在线'
+        })
+    })
+    let str = `公司名称,项目名称,仪表名称,imei号,工位号,iccid,最后通信时间,仪表状态\n`
+    // 增加 为了不让表格显示科学计数法或者其他格式
+    for (let i = 0; i < listData.length; i++) {
+        for (const key in listData[i]) {
+            str += `${listData[i][key] + '\t'},`
+        }
+        str += '\n'
+    }
+    // encodeURIComponent解决中文乱码
+    const uri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(str)
+    // 通过创建a标签实现
+    const link = document.createElement('a')
+    link.href = uri
+    // 对下载的文件命名
+    link.download = 'json数据表.csv'
+    link.click()
+}
+
+// #region ********** start 处理表格数据 **********
+const tableData: any = ref([])
+// 给表格传数据
+const setTableData = (data: any) => {
+    tableData.value = data.value
+}
+const _tableData = computed(() => tableData.value)
+
+// 表格column
+const fieldLists = reactive([
+    {
+        label: '所属公司',
+        prop: 'company_name',
+        fixed: true,
+        minWidth: 120
+    },
+    {
+        label: '所属工程',
+        prop: 'project_name',
+        minWidth: 120
+    },
+    {
+        label: '仪表名称',
+        prop: 'node_name',
+        minWidth: 200
+    },
+    {
+        label: 'IMEI号',
+        prop: 'imei',
+        search: {
+            type: 'input',
+            span: 1
+        },
+        sortable: true,
+        width: 150
+    },
+    {
+        label: '工位号',
+        prop: 'group',
+        minWidth: 100
+    },
+    {
+        label: '数据',
+        prop: 'node_data',
+        width: 170
+    },
+    {
+        label: '操作',
+        prop: 'operation',
+        type: 'operation',
+        fixed: 'right',
+        minWidth: 140
+    }
+])
+
+/* 表格——仪表名称 */
+// 图片渲染
+const nodeName: any = reactive(['压力', '温度', '多参量', '液位'])
+const images: any = reactive({
+    压力: new URL('@/assets/images/pressure.png', import.meta.url).href,
+    温度: new URL('@/assets/images/temp.png', import.meta.url).href,
+    多参量: new URL('@/assets/images/multiple.png', import.meta.url).href,
+    液位: new URL('@/assets/images/liquid.png', import.meta.url).href
+})
+const getImage = (node_name: any) => {
+    const includesName: any = nodeName.filter((name: any) => node_name.includes(name))
+    return images[includesName[0]]
+}
+
+// 检测是否包含关键字
+const includeNodeName = (node_name: any) => {
+    return nodeName.some((name: any) => node_name.includes(name))
+}
+
+/* 表格——数据 */
+// tag内容
+const nodeData = (data: any) => {
+    const tags: any = []
+    for (let i of data.line_datas) {
+        for (let j of UNIT_TABLE) {
+            if (i.unit == j.type) {
+                tags.push(`${j.desc} ${i.value} ${j.name}`)
+            }
+        }
+    }
+    return tags
+}
+
+// tag渲染
+const tagType = (index: any) => {
+    return tagTypes[index % tagTypes.length]
+}
+// #endregion ********** end 处理表格数据 **********
+
+onMounted(() => {
+    initCharts()
+})
+</script>
+
+<style lang="scss" scoped>
+.realTimeData-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+
+    .realTimeData-left {
+        flex: 0 0 250px;
+        margin-right: 5px;
+        display: flex;
+        flex-direction: column;
+
+        .filter-input {
+            flex: 0 0 36px;
+            margin-bottom: 5px;
+        }
+
+        .companyTree {
+            flex: 1;
+            padding: 5px 0 5px 0;
+            border: 1px rgba(0, 0, 0, 0.1) solid;
+            border-radius: 5px;
+        }
+
+        .warning-button {
+            width: 100%;
+            margin: 5px 0;
+            flex: 0 0 36px;
+        }
+
+        .alarm-preview {
+            flex: 0 0 280px;
+            padding: 0;
+        }
+    }
+
+    .realTimeData-right {
+        flex: 1;
+        width: 80%;
+        height: calc(100% - 85px);
+        .withPic {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            .picInline {
+                width: 100px;
+                height: 100px;
+            }
+        }
+
+        .tag-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    }
+}
+</style>
