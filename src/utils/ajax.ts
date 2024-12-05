@@ -40,7 +40,7 @@ ajax.interceptors.response.use(
     (response: any) => {
         // 返回200也分正确和错误信息
         // result为1时正确，0为有错误参数
-        if (response.data.result === '1') {
+        if (response.data.result == '1') {
             return response.data
         } else {
             // 出错时在提示并在控制台输出错误信息

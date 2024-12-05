@@ -25,6 +25,7 @@
                                 >
                                     <i class="iconfont icon-yiwen"></i>
                                 </el-tooltip>
+                                :
                             </el-space>
                         </template>
                         <!-- content -->
@@ -39,6 +40,7 @@
                             "
                             clearable
                             :placeholder="`${column.search?.type === 'input' ? '请输入' : '请选择'}${column.label}`"
+                            @keyup.enter.native="search"
                         ></component>
                     </el-form-item>
                 </el-col>
@@ -68,7 +70,7 @@ const props = defineProps({
     // 搜索栏 label 宽度
     labelWidth: {
         type: Number,
-        default: 100
+        default: 80
     }
 })
 
@@ -105,11 +107,11 @@ const reset = () => {
 const operateSpan = computed(() => {
     const colSpanSum = props.searchFields.reduce((pre: any, cur: any) => {
         if (props.searchFields.length === 1) {
-            return pre
+            return props.searchFields[0].search?.span || 1
         }
-        pre += cur.search.span || 1
+        pre += cur.search?.span || 1
         return pre
-    }, props.searchFields[0].search?.span || 1)
+    }, 0)
     return (3 - (colSpanSum % 3)) * 8
 })
 </script>

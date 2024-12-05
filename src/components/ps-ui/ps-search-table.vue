@@ -146,27 +146,30 @@ const props = defineProps({
     }
 })
 
+// 定义 emit 方法
+const emit = defineEmits<{
+    getCurTableData: [{ curTableData: object }]
+}>()
+
 /* -------------------- 搜索 -------------------- */
 // 筛选出带搜索的表单
 const searchFields = props.fieldLists.filter((item: any) => item.search)
 // 当前搜索参数
-const curSearchParams = ref({})
+const curSearchParams: any = ref({})
 
 // 搜索
 const search = (val: any) => {
     curSearchParams.value = val.searchParams.value
-    // 判断有没有搜索参数
-    if (!Object.values(curSearchParams.value)[0]) {
-        // 没有的话展示总的
-        curTableData.value = _tableData.value
-    } else {
-        // 有的话展示筛选的
-        curTableData.value = _tableData.value.filter((item: any) => {
-        return item[Object.keys(curSearchParams.value)[0]].includes(
-            Object.values(curSearchParams.value)[0]
-        )
-    })
+    // 筛选数据
+    curTableData.value = _tableData.value
+    for (let i in curSearchParams.value) {
+        if (curSearchParams.value[i]) {
+            curTableData.value = curTableData.value.filter((item: any) => {
+                return item[i].includes(curSearchParams.value[i])
+            })
+        }
     }
+    emit('getCurTableData', { curTableData })
 }
 
 // 重置

@@ -69,4 +69,3 @@ export const UNIT_TABLE = [
     { type: '36', name: 'kj/kg', desc: '热量', coef: 1.0 },
     { type: '37', name: 'kg/m³', desc: '密度', coef: 1.0 }
 ]
-
