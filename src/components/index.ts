@@ -5,6 +5,7 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import PsSearch from './ps-ui/ps-search.vue'
 import PsPagination from './ps-ui/ps-pagination.vue'
 import PsSearchTable from './ps-ui/ps-search-table.vue'
+import PsDialog from './ps-ui/ps-dialog.vue'
 
 // 整合到一个对象中
 const allGlobalComponents = {
@@ -13,6 +14,7 @@ const allGlobalComponents = {
     PsSearch,
     PsPagination,
     PsSearchTable,
+    PsDialog
 }
 
 // 对外暴露插件对象

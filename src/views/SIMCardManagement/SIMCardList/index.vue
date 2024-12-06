@@ -110,16 +110,10 @@ const outputList = () => {
 const allUpdate = async () => {
     const res: any = await allSimUpdate()
     if (res.result == '1') {
-        ElMessage({
-            type: 'success',
-            message: '更新成功'
-        })
+        ElMessage.success('更新成功')
         getSIMData()
     } else {
-        ElMessage({
-            type: 'error',
-            message: '更新失败'
-        })
+        ElMessage.error('更新失败')
     }
 }
 

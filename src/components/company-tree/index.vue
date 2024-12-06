@@ -1,7 +1,9 @@
 <template>
     <ps-tree
+        :loading="treeLoading"
         :filterText="filterText"
         :treeData="treeData"
+        :showCheckbox="showCheckbox"
         :filterNodeMethod="filterCompanyTreeFunc"
         :handleNodeClick="companyTreeNodeClick"
         :handleCheckboxClick="companyTreeNodeCheck"
@@ -26,16 +28,26 @@
 </template>
 
 <script setup lang="ts">
-import { getCompanyTree, getCompanyProjects, GetProjectsNodes } from '@/api/home'
+import {
+    getCompanyTree,
+    getCompanyProjects,
+    getProjectsNodes,
+    getCompanysProjects
+} from '@/api/home'
 import { ref, reactive } from 'vue'
 import useUserStore from '@/store/modules/user'
 
 const userStore = useUserStore()
 
-defineProps({
+const props = defineProps({
     filterText: {
         type: String,
         default: ''
+    },
+    // 	节点是否可被选择
+    showCheckbox: {
+        type: Boolean,
+        default: true
     }
 })
 
@@ -56,7 +68,9 @@ const itemCount: any = ref(0) // 项目总数
 const alarmCount: any = ref(0) // 仪表总数
 
 // 组装树
+const treeLoading = ref(false)
 const getTreeData = async () => {
+    treeLoading.value = true
     // 请求接口获取数据
     const params = {
         access_token: userStore.token,
@@ -68,7 +82,9 @@ const getTreeData = async () => {
     const resTree: any = reactive([JSON.parse(JSON.stringify(res.company_tree))])
     // 组装树
     assembleTree(resTree)
+    console.log(resTree)
     treeData.value = resTree
+    treeLoading.value = false
 }
 
 // 递归遍历
@@ -78,7 +94,9 @@ const assembleTree = (tree: any) => {
             item.type = 'c'
             item.id = item.company_id
             companyCount.value += 1
-            addProjectsToCompany(item)
+            if (props.showCheckbox) {
+                addProjectsToCompany(item)
+            }
             if (item.children) assembleTree(item.children)
         })
     }
@@ -106,7 +124,6 @@ const addProjectsToCompany = async (child: any) => {
 }
 
 getTreeData()
-
 // #endregion ********** end 获取左侧树列表数据 **********
 
 // #region  ********** start 点击多选框的方法 **********
@@ -144,7 +161,7 @@ const companyTreeNodeCheck = async (_company: any, check: any) => {
             access_token: userStore.token,
             project_list: JSON.stringify([item])
         }
-        const res: any = await GetProjectsNodes(params)
+        const res: any = await getProjectsNodes(params)
         // 推送到点击过的合集里
         checkData[item.id] = res.node_list
     }
@@ -164,7 +181,6 @@ const companyTreeNodeCheck = async (_company: any, check: any) => {
     emit('dataLoading', { loading })
     emit('getNodeClickData', { checkData, curCheckData, alarmCount })
 }
-
 // #endregion ********** end 点击多选框的方法 **********
 
 // 对树节点进行筛选时执行的方法
@@ -185,6 +201,19 @@ const filterCompanyTreeFunc = (value: any, data: any) => {
 const companyTreeNodeClick = async (project: any) => {
     if (project.type === 'p') {
         emit('getTreeNodeClick', { project })
+    }
+    if (!props.showCheckbox) {
+        loading.value = true
+        emit('dataLoading', { loading })
+        const params = {
+            access_token: userStore.token,
+            company_list: JSON.stringify([project])
+        }
+        getCompanysProjects(params).then((res: any) => {
+            loading.value = false
+            emit('getTreeNodeClick', { project: res.project_list })
+            emit('dataLoading', { loading })
+        })
     }
 }
 </script>

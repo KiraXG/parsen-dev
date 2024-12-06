@@ -40,13 +40,13 @@ ajax.interceptors.response.use(
     (response: any) => {
         // 返回200也分正确和错误信息
         // result为1时正确，0为有错误参数
-        if (response.data.result == '1') {
-            return response.data
-        } else {
+        if (response.data.result == '0') {
             // 出错时在提示并在控制台输出错误信息
-            ElMessage.error(response.data.err_msg)
+            ElMessage.error(response.data.err_msg || '操作失败')
             console.error('Error:', response)
             return Promise.reject(response.data.err_msg)
+        } else {
+            return response.data
         }
         // 成功回调
     },
@@ -75,10 +75,7 @@ ajax.interceptors.response.use(
                 break
         }
         // 消息提示
-        ElMessage({
-            type: 'error',
-            message
-        })
+        ElMessage.error(message)
 
         return Promise.reject(error)
     }

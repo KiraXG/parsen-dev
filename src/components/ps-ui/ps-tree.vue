@@ -1,5 +1,9 @@
 <template>
-    <el-scrollbar class="ps-tree">
+    <el-scrollbar
+        class="ps-tree"
+        v-loading="loading"
+        element-loading-text="正在加载数据，请稍等..."
+    >
         <el-tree
             ref="treeRef"
             class="filter-tree"
@@ -73,6 +77,11 @@ const props = defineProps({
     emptyText: {
         type: String,
         default: '数据为空'
+    },
+    // 加载样式
+    loading: {
+        type: Boolean,
+        default: false
     },
     // 是否默认展开所有节点
     defaultExpandAll: {

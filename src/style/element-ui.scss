@@ -4,7 +4,6 @@
     height: 36px;
 }
 
-.el-button.is-link,
 .el-button.is-circle {
     width: 36px;
 }
@@ -68,6 +67,32 @@
     border-right: 1px solid #eeeeee;
 }
 
+// 穿梭框样式
+.el-input__wrapper {
+    height: 28px;
+    margin-top: -7px;
+}
+
+.el-transfer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    .el-transfer-panel {
+        flex: 0 0 250px;
+        .el-transfer-panel__filter {
+            margin-bottom: 4px;
+        }
+    }
+    .el-transfer__buttons {
+        padding: 0 15px;
+    }
+}
+
+// 气泡弹出框样式
+.el-popconfirm__action .el-button {
+    height: 28px;
+}
+
 // el-table 表格样式
 .el-table {
     flex: 1;
@@ -90,6 +115,10 @@
     .el-table__row {
         height: 45px;
         font-size: 14px;
+    }
+
+    .el-button {
+        height: 30px;
     }
 
     // 设置 el-table 中 header 文字不换行，并省略

@@ -2,11 +2,12 @@
     <!-- 搜索栏 -->
     <ps-search
         v-if="hasSearch"
+        :labelWidth="labelWidth"
         :searchFields="searchFields"
         @search.native="search"
         @reset.native="reset"
     ></ps-search>
-    <div class="card table-main">
+    <div class="card table-main" v-loading="loading" element-loading-text="正在加载数据，请稍等...">
         <!-- 表格上方区域 -->
         <div class="table-header">
             <div class="header-button-lf">
@@ -19,13 +20,14 @@
         <!-- 表格主体 -->
         <el-table
             v-bind="$attrs"
-            v-loading="loading"
-            element-loading-text="正在加载数据，请稍等..."
             :data="curPageTableData"
             :row-key="rowKey"
             :border="border"
             :stripe="stripe"
             :highlight-current-row="highlightCurrentRow"
+            :default-expand-all="defaultExpandAll"
+            v-loading="tableLoading"
+            element-loading-text="正在加载数据，请稍等..."
         >
             <slot></slot>
             <template v-for="item in fieldLists" :key="item">
@@ -106,6 +108,11 @@ const props = defineProps({
         type: Boolean,
         default: true
     },
+    // 搜索label宽度
+    labelWidth: {
+        type: Number,
+        default: 80
+    },
     // 分页器
     hasPagination: {
         type: Boolean,
@@ -118,6 +125,11 @@ const props = defineProps({
             pageNum: 1,
             pageSize: 10
         })
+    },
+    // 树形结构是否默认展开
+    defaultExpandAll: {
+        type: Boolean,
+        default: false
     },
     // 加载样式
     loading: {
@@ -156,9 +168,12 @@ const emit = defineEmits<{
 const searchFields = props.fieldLists.filter((item: any) => item.search)
 // 当前搜索参数
 const curSearchParams: any = ref({})
+// 搜索加载样式
+const tableLoading = ref(false)
 
 // 搜索
 const search = (val: any) => {
+    tableLoading.value = true
     curSearchParams.value = val.searchParams.value
     // 筛选数据
     curTableData.value = _tableData.value
@@ -170,6 +185,9 @@ const search = (val: any) => {
         }
     }
     emit('getCurTableData', { curTableData })
+    setTimeout(() => {
+        tableLoading.value = false
+    }, 500)
 }
 
 // 重置
