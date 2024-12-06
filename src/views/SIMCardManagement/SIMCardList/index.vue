@@ -3,6 +3,7 @@
         <ps-search-table
             rowKey="node_id"
             :border="true"
+            :loading="loading"
             :fieldLists="fieldLists"
             :tableData="tableData"
             @getCurTableData="getCurTableData"
@@ -28,18 +29,32 @@ import { formatDate } from '@/utils'
 import { getSimInfo, companySim, allSimUpdate } from '@/api/SIMCardList'
 
 const userStore = useUserStore()
+const loading: any = ref(false) // 加载
 
 // 获取SIM卡列表
-const getSIMData = async () => {
+const getSIMData = () => {
+    loading.value = true
     if (userStore.userInfo.company_id == '1') {
-        const res: any = await getSimInfo()
-        setTableData(res.sim_data)
+        // 管理员
+        getSimInfo()
+            .then((res: any) => {
+                setTableData(res.result)
+            })
+            .finally(() => {
+                loading.value = false
+            })
     } else {
+        // 个人
         const params = {
             company_id: userStore.userInfo.company_id
         }
-        const res: any = await companySim(params)
-        setTableData(res.sim_data)
+        companySim(params)
+            .then((res: any) => {
+                setTableData(res.sim_data)
+            })
+            .finally(() => {
+                loading.value = false
+            })
     }
 }
 getSIMData()
@@ -146,7 +161,7 @@ const fieldLists = reactive([
             type: 'input',
             span: 1
         },
-        minWidth: 80
+        minWidth: 100
     },
     {
         label: '状态',
