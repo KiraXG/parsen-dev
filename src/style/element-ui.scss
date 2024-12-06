@@ -68,21 +68,24 @@
 }
 
 // 穿梭框样式
-.el-input__wrapper {
-    height: 28px;
-    margin-top: -7px;
-}
-
 .el-transfer {
     display: flex;
     justify-content: center;
     align-items: center;
+
     .el-transfer-panel {
         flex: 0 0 250px;
+
+        .el-input__wrapper {
+            height: 28px;
+            margin-top: -7px;
+        }
+
         .el-transfer-panel__filter {
             margin-bottom: 4px;
         }
     }
+
     .el-transfer__buttons {
         padding: 0 15px;
     }

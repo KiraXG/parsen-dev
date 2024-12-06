@@ -11,11 +11,7 @@
             <!-- 操作 -->
             <template #operation="{ row }">
                 <!-- 添加下属公司 -->
-                <el-button
-                    type="primary"
-                    icon="CirclePlus"
-                    @click="addCompany(row)"
-                    size="small"
+                <el-button type="primary" icon="CirclePlus" @click="addCompany(row)" size="small"
                     >添加下属公司</el-button
                 >
                 <!-- 删除归属关系 -->
