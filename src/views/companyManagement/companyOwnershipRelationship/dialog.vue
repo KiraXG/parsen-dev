@@ -45,6 +45,7 @@ const props = defineProps({
 
 // 定义 emit 方法
 const emit = defineEmits<{
+    confirm: [] // 关闭弹窗
     close: [] // 关闭弹窗
 }>()
 
@@ -88,6 +89,7 @@ const confirm = () => {
     addCompanySons(params)
         .then(() => {
             ElMessage.success('添加成功')
+            emit('confirm')
         })
         .finally(() => {
             setTimeout(() => {

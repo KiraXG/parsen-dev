@@ -43,6 +43,7 @@
         :openDialog="openDialog"
         :dialogHeader="dialogHeader"
         :rowData="rowData"
+        @confirm="confirm"
         @close="closeDialog"
     ></company-dialog>
 </template>
@@ -122,7 +123,7 @@ const dialogHeader = ref('') // 弹窗标题
 const rowData = ref({}) // 点击当前行的数据
 const openDialog: any = ref(false) // 打开弹窗
 const addCompany = (row: any) => {
-    dialogHeader.value = `为「${row.company_name}」添加下属公司`
+    dialogHeader.value = `为『 ${row.company_name} 』添加下属公司`
     rowData.value = row
     openDialog.value = true
 }
@@ -134,22 +135,22 @@ const deleteCompany = (row: any) => {
         son_id: row.company_id
     }
     removeOneSon(params).then(() => {
-        reset()
+        getTableData()
         ElMessage.success('删除成功!')
     })
+}
+
+// 提交成功后重置参数
+const confirm = () => {
+    closeDialog()
+    getTableData()
 }
 
 // 关闭弹窗
 const closeDialog = () => {
     openDialog.value = false
-    reset()
-}
-
-// 重置参数
-const reset = () => {
     dialogHeader.value = ''
     rowData.value = {}
-    getTableData()
 }
 </script>
 

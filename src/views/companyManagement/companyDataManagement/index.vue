@@ -61,7 +61,7 @@
 import { ref, reactive, computed } from 'vue'
 import useUserStore from '@/store/modules/user'
 import { getCompanyList, removeCompany } from '@/api/companyManagement'
-import companyDialog from './dialog.vue'
+import CompanyDialog from './dialog.vue'
 import { ElMessage } from 'element-plus'
 
 const userStore = useUserStore()
