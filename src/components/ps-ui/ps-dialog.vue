@@ -33,6 +33,7 @@
         <template #footer>
             <slot name="dialogFooter">
                 <div>
+                    <el-button @click="closeDialog">{{ isEdit ? '取消' : '关闭' }}</el-button>
                     <el-button
                         :loading="loading"
                         :disabled="loading"
@@ -41,7 +42,6 @@
                         v-if="isShowConfirm"
                         >{{ isView ? '确认' : '提交' }}</el-button
                     >
-                    <el-button @click="closeDialog">{{ isEdit ? '取消' : '关闭' }}</el-button>
                 </div>
             </slot>
         </template>
@@ -112,14 +112,11 @@ const _openDialog = computed(() => props.openDialog)
 const _dialogVisible = ref(false)
 
 watch(_openDialog, (val) => {
-    console.log(val)
-
     _dialogVisible.value = val
 })
 
 // 确认
 const confirmDialog = () => {
-    closeDialog()
     emit('confirm')
 }
 
@@ -132,6 +129,7 @@ const closeDialog = () => {
 <style lang="scss" scoped>
 .dialogHeader {
     font-size: 20px;
+    padding: 5px 0 10px 5px;
 }
 
 .dialog-inner {

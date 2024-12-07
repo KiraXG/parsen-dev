@@ -13,7 +13,7 @@
                     :span="((column.search?.span || 1) % 3 || 3) * 8"
                 >
                     <el-form-item>
-                        <!-- label -->
+                        <!-- search-label -->
                         <template #label>
                             <el-space :size="4">
                                 {{ column.search?.label ?? column.label }}
@@ -28,7 +28,7 @@
                                 :
                             </el-space>
                         </template>
-                        <!-- content -->
+                        <!-- search-content -->
                         <component
                             :is="column.search?.render ?? 'el-' + column.search?.type"
                             v-model.trim="searchParams[column.search?.prop ?? column.prop]"
@@ -59,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
     // 搜索表单
