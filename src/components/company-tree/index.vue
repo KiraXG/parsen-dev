@@ -56,7 +56,7 @@ const emit = defineEmits<{
     getTreeData: [{ treeData: object[]; companyCount: number; itemCount: number }]
     getNodeClickData: [{ checkData: object; curCheckData: object[]; alarmCount: number }]
     dataLoading: [{ loading: object }]
-    getTreeNodeClick: [{ project: object }]
+    getTreeNodeClick: [{ project: object, projectList?: object }]
 }>()
 
 // #region ********** start 处理左侧树列表数据 **********
@@ -211,11 +211,16 @@ const companyTreeNodeClick = async (project: any) => {
         }
         getCompanysProjects(params).then((res: any) => {
             loading.value = false
-            emit('getTreeNodeClick', { project: res.project_list })
+            emit('getTreeNodeClick', { project, projectList: res.project_list })
             emit('dataLoading', { loading })
         })
     }
 }
+
+// 向父组件暴露方法
+defineExpose({
+    companyTreeNodeClick
+})
 </script>
 
 <style lang="scss" scoped></style>

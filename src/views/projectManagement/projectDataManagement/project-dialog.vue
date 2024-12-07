@@ -16,7 +16,7 @@
 import { ref, computed, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import useUserStore from '@/store/modules/user'
-import { insertCompany, setCompanyInfo } from '@/api/companyManagement'
+import { insertProject, updateProject } from '@/api/projectManagement'
 
 const props = defineProps({
     // 打开弹窗
@@ -43,6 +43,16 @@ const props = defineProps({
     rowData: {
         type: Object,
         default: () => {}
+    },
+    // 当前树节点数据
+    curProject: {
+        type: Object,
+        default: () => {}
+    },
+    // 当前树节点数据列表
+    curCheckData: {
+        type: Object,
+        default: () => {}
     }
 })
 
@@ -55,17 +65,13 @@ const emit = defineEmits<{
 const userStore = useUserStore()
 
 const dialogInnerStyle = reactive({
-    height: '300px'
+    height: '150px'
 }) // 弹窗高度
 const loading = ref(false) // 加载样式
-const resData = ref([]) // 请求返回的数据
-const companySelected = ref([]) // 已有被选择的数据
 const formData = ref({}) // 表单数据
 
 // 弹窗打开时触发
 const open = () => {
-    // 根据mode设值弹窗高度
-    dialogInnerStyle.height = props.mode === 'add' ? '280px' : '330px'
     // 重置参数
     reset()
     // 请求数据
@@ -90,16 +96,21 @@ const confirm = () => {
     // form 表单验证是否通过
     formValidate.value.validate((valid: any) => {
         if (!valid) return
+        // 检查重名
+        if (props.curCheckData.some((i: any) => i.project_name == curFormData.value.project_name)) {
+            ElMessage.error('该工程名称已存在!')
+            return
+        }
         loading.value = true
         if (props.mode === 'add') {
             // 新建
             const params = {
                 access_token: userStore.token,
-                company_id: userStore.userInfo.company_id,
-                tel: '',
-                ...curFormData.value
+                company_id: props.curProject.company_id,
+                project_name: curFormData.value.project_name,
+                project_desc: curFormData.value.project_desc || ''
             }
-            insertCompany(params)
+            insertProject(params)
                 .then(() => {
                     ElMessage.success('添加成功')
                     emit('confirm')
@@ -113,15 +124,11 @@ const confirm = () => {
             // 修改
             const params = {
                 access_token: userStore.token,
-                account_old: props.rowData.account,
-                account: curFormData.value.account,
-                company_full_name: curFormData.value.company_full_name,
-                company_name: curFormData.value.company_name,
-                tel: curFormData.value.tel,
-                manage_node: curFormData.value.manage_node,
-                manage_company: curFormData.value.manage_company
+                project_id: props.rowData.project_id,
+                project_name: curFormData.value.project_name,
+                project_desc: curFormData.value.project_desc
             }
-            setCompanyInfo(params)
+            updateProject(params)
                 .then(() => {
                     ElMessage.success('添加成功')
                     emit('confirm')
@@ -144,11 +151,9 @@ const close = () => {
 // 重置参数
 const reset = () => {
     loading.value = false
-    resData.value = []
-    companySelected.value = []
     formData.value = {}
-    curFormData.value = {}
     formValidate.value = {}
+    curFormData.value = {}
 }
 </script>
 
