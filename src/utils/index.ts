@@ -69,3 +69,23 @@ export const UNIT_TABLE = [
     { type: '36', name: 'kj/kg', desc: '热量', coef: 1.0 },
     { type: '37', name: 'kg/m³', desc: '密度', coef: 1.0 }
 ]
+
+//包含了全部的压力单位
+export const PRESSURE_UNITS = [
+    '0',
+    '1',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    '10',
+    '11',
+    '12',
+    '13',
+    '14',
+    '19',
+    '20',
+    '21'
+]

@@ -141,7 +141,7 @@ const rowData: any = ref({}) // 点击当前行的数据
 const openDialog: any = ref(false) // 打开弹窗
 
 // 当前form表单 column
-const formFields: any = ref([
+const formFields: any = reactive([
     {
         label: '工程名称',
         prop: 'project_name',

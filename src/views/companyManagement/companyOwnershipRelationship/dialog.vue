@@ -67,7 +67,6 @@ const open = () => {
     }
     getCompanyPrepareSonList(params)
         .then((res: any) => {
-            console.log(res)
             resData.value = res.prepare_son_list || []
             companySelected.value = res.selected || []
         })

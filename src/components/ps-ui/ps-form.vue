@@ -1,5 +1,5 @@
 <template>
-    <el-form style="margin: 0 20px" ref="formRef" :model="_formData" :label-width="labelWidth">
+    <el-form style="margin: 0 40px" ref="formRef" :model="_formData" :label-width="labelWidth">
         <el-form-item
             v-for="(item, index) in formFields"
             :key="index"
@@ -29,12 +29,15 @@
                         v-if="item.type"
                         :is="`el-${item.type}`"
                         v-model.trim="_formData[item.prop]"
-                        :disabled="disabled"
+                        :disabled="item.disabled"
                         :size="size"
                         :data="item.type === 'tree-select' ? item.options : []"
                         :options="['cascader', 'select-v2'].includes(item.type) ? item.options : []"
                         clearable
-                        :placeholder="`${item.type === 'input' ? '请输入' : '请选择'}${item.label}`"
+                        :placeholder="
+                            item.placeholder ??
+                            `${item.type === 'input' ? '请输入' : '请选择'}${item.label}`
+                        "
                     >
                         <!-- cascader -->
                         <template v-if="item.type === 'cascader'" #default="{ data }">
@@ -79,7 +82,7 @@ const props = defineProps({
         default: ''
     },
     // 禁用表单组件
-    disabled: {
+    disabledForm: {
         type: Boolean,
         default: false
     },

@@ -54,9 +54,12 @@ const props = defineProps({
 // 定义emit方法
 const emit = defineEmits<{
     getTreeData: [{ treeData: object[]; companyCount: number; itemCount: number }]
-    getNodeClickData: [{ checkData: object; curCheckData: object[]; alarmCount: number }]
+    getNodeClickData: [
+        { checkData: object; curCheckData: object[]; alarmCount: number; project: object }
+    ]
+    getNewNodeClickData: [{ curCheckData: object[] }]
     dataLoading: [{ loading: object }]
-    getTreeNodeClick: [{ project: object, projectList?: object }]
+    getTreeNodeClick: [{ project: object; projectList?: object }]
 }>()
 
 // #region ********** start 处理左侧树列表数据 **********
@@ -82,7 +85,6 @@ const getTreeData = async () => {
     const resTree: any = reactive([JSON.parse(JSON.stringify(res.company_tree))])
     // 组装树
     assembleTree(resTree)
-    console.log(resTree)
     treeData.value = resTree
     treeLoading.value = false
 }
@@ -133,21 +135,25 @@ const checkData: any = reactive({})
 const curCheckData: any = ref([])
 // 请求过的节点[id]
 const nodeChecked: any = ref([])
+// 当前勾选的id[id]
+const curNodeCheckId: any = ref([])
 
 // 请求数据时图表加载样式
 const loading = ref(false)
-const companyTreeNodeCheck = async (_company: any, check: any) => {
+const companyTreeNodeCheck = async (project: any, check: any) => {
     loading.value = true
     emit('dataLoading', { loading })
     // 过滤类型为p的节点 [list]
     const curCompanyChecked = check.checkedNodes.filter((item: any) => item.type === 'p')
     // console.log('当前点击类型为p的节点', curCompanyChecked)
     // 当前点击的p节点id [id]
-    const curNodeCheckId = curCompanyChecked.map((item: any) => item.id)
+    curNodeCheckId.value = curCompanyChecked.map((item: any) => item.id)
     // console.log('当前点击的p节点id', curNodeCheckId)
 
     // 找出未请求过的节点 [id]
-    const noRequestedNode = curNodeCheckId.filter((item: any) => !nodeChecked.value.includes(item))
+    const noRequestedNode = curNodeCheckId.value.filter(
+        (item: any) => !nodeChecked.value.includes(item)
+    )
     // console.log('找出未请求过的节点', noRequestedNode)
 
     // 未请求的节点去请求
@@ -172,16 +178,38 @@ const companyTreeNodeCheck = async (_company: any, check: any) => {
     // 当前点击的仪表总数
     alarmCount.value = 0
     curCheckData.value = []
-    for (let item of curNodeCheckId) {
+    for (let item of curNodeCheckId.value) {
         curCheckData.value.push(...checkData[item])
         alarmCount.value += checkData[item].length
     }
     console.log('当前点击project列表', curCheckData.value)
     loading.value = false
     emit('dataLoading', { loading })
-    emit('getNodeClickData', { checkData, curCheckData, alarmCount })
+    emit('getNodeClickData', { checkData, curCheckData, alarmCount, project })
 }
 // #endregion ********** end 点击多选框的方法 **********
+
+// 更新checkData列表数据
+const updateCheckData = async (project: any) => {
+    loading.value = true
+    emit('dataLoading', { loading })
+    // 请求接口
+    const params = {
+        access_token: userStore.token,
+        project_list: JSON.stringify([project])
+    }
+    const res: any = await getProjectsNodes(params)
+    // 更新对应的节点数据 {}
+    checkData[project.id] = res.node_list
+    // 更新当前点击数量的总数 []
+    curCheckData.value = []
+    for (let item of curNodeCheckId.value) {
+        curCheckData.value.push(...checkData[item])
+    }
+    loading.value = false
+    emit('dataLoading', { loading })
+    emit('getNewNodeClickData', { curCheckData })
+}
 
 // 对树节点进行筛选时执行的方法
 const filterCompanyTreeFunc = (value: any, data: any) => {
@@ -219,6 +247,7 @@ const companyTreeNodeClick = async (project: any) => {
 
 // 向父组件暴露方法
 defineExpose({
+    updateCheckData,
     companyTreeNodeClick
 })
 </script>
