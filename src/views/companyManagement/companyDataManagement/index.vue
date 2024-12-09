@@ -25,7 +25,7 @@
             </template>
             <template #operation="{ row }">
                 <!-- 编辑 -->
-                <el-button type="primary" icon="Edit" size="small" @click="handleEdit(row)"
+                <el-button type="primary" link icon="Edit" size="small" @click="handleEdit(row)"
                     >编辑</el-button
                 >
                 <!-- 删除 -->
@@ -35,11 +35,14 @@
                     icon="InfoFilled"
                     icon-color="#626AEF"
                     title="确定要删除吗？"
+                    placement="top"
                     @confirm="handleDelete(row)"
                 >
                     <template #reference>
                         <span style="margin-left: 12px">
-                            <el-button type="danger" icon="Delete" size="small">删除</el-button>
+                            <el-button type="danger" link icon="Delete" size="small"
+                                >删除</el-button
+                            >
                         </span>
                     </template>
                 </el-popconfirm>

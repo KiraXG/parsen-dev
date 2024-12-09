@@ -21,6 +21,7 @@
                     icon="InfoFilled"
                     icon-color="#626AEF"
                     title="确定要调整仪表读数吗？"
+                    placement="top"
                     @confirm="submitOffset"
                 >
                     <template #reference>
@@ -38,6 +39,7 @@
                 icon="InfoFilled"
                 icon-color="#626AEF"
                 title="确定要调零吗？"
+                placement="top"
                 @confirm="submitZero"
             >
                 <template #reference>
@@ -290,7 +292,7 @@ const open = () => {
             })
             curLineDatas.value.push(data)
         }
-    } else if (props.mode === 'update_imei') {
+    } else if (props.mode === 'update_imei' || props.mode === 'add_SIM') {
         dialogInnerStyle.height = '120px'
     } else {
         dialogInnerStyle.height = '170px'

@@ -71,7 +71,12 @@
                         @click="showInstrumentDetail(row)"
                         >仪表详情</el-button
                     >
-                    <el-button type="danger" icon="Calendar" link @click="showAlarmRecord(row)"
+                    <el-button
+                        type="danger"
+                        icon="Calendar"
+                        link
+                        @click="showAlarmRecord(row)"
+                        style="margin-left: 6px"
                         >报警记录</el-button
                     >
                 </template>
@@ -91,14 +96,11 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import CompanyTree from '@/components/company-tree/index.vue'
-import useUserStore from '@/store/modules/user'
 import { alarmOption } from './realTimeData-echats'
 import { formatDate, UNIT_TABLE, tagTypes } from '@/utils'
 import * as echarts from 'echarts'
 import { ElMessage } from 'element-plus'
 import RealTimeDataDetailDialog from './realTimeData-detail-dialog.vue'
-
-const userStore = useUserStore()
 
 // #region ********** start 左侧树方法 **********
 const curCheckData: any = ref([]) // 当前点击节点的project总数
@@ -243,7 +245,7 @@ const fieldLists = reactive([
         prop: 'operation',
         type: 'operation',
         fixed: 'right',
-        minWidth: 180
+        minWidth: 200
     }
 ])
 

@@ -11,7 +11,12 @@
             <!-- 操作 -->
             <template #operation="{ row }">
                 <!-- 添加下属公司 -->
-                <el-button type="primary" icon="CirclePlus" @click="addCompany(row)" size="small"
+                <el-button
+                    type="primary"
+                    icon="CirclePlus"
+                    link
+                    @click="addCompany(row)"
+                    size="small"
                     >添加下属公司</el-button
                 >
                 <!-- 删除归属关系 -->
@@ -21,12 +26,14 @@
                     icon="InfoFilled"
                     icon-color="#626AEF"
                     title="确定要删除吗？"
+                    placement="top"
                     @confirm="deleteCompany(row)"
                 >
                     <template #reference>
                         <span style="margin-left: 12px">
                             <el-button
                                 v-if="!row.noDelete"
+                                link
                                 type="danger"
                                 size="small"
                                 icon="Delete"

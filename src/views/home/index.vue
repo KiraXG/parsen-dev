@@ -26,7 +26,7 @@ import CompanyTree from '@/components/company-tree/index.vue'
 import { ref, onMounted, reactive } from 'vue'
 import { companyOption, itemOption, nodeOption, alarmOption, stateOption } from './home-charts'
 import * as echarts from 'echarts'
-import AMap from '@/utils/gaode-map'
+import gdMap from '@/utils/gaode-map'
 
 const curCheckData: any = ref([]) // 当前点击节点的project总数
 const companyCount: any = ref(0) // 公司总数
@@ -141,13 +141,15 @@ const draw = () => {
 }
 // #endregion ********** end 处理echarts图表 **********
 
-let map = null
+let map = ref(null)
 const loadMap = () => {
-    map = new AMap.Map('map_container', {
-        // 设置地图容器id
-        viewMode: '3D', // 是否为3D地图模式
-        zoom: 11, // 初始化地图级别
-        center: [116.397428, 39.90923] // 初始化地图中心点位置
+    gdMap.then((AMap) => {
+        map.value = new AMap.Map('map_container', {
+            // 设置地图容器id
+            viewMode: '3D', // 是否为3D地图模式
+            zoom: 11, // 初始化地图级别
+            center: [116.397428, 39.90923] // 初始化地图中心点位置
+        })
     })
 }
 

@@ -1,7 +1,10 @@
 .el-input,
-.el-button,
-.el-button.is-link {
+.el-button {
     height: 36px;
+}
+
+.el-button.is-link {
+    font-size: 14px;
 }
 
 .el-button.is-circle {

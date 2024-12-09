@@ -140,7 +140,7 @@
                 >
             </div>
             <div v-if="radio1 == 1">
-                <div v-for="(info, i) in rowData.line_datas">
+                <div v-for="info in rowData.line_datas">
                     <!--             图标个数在html中由lastselectedNode限制 -->
                     <div
                         :id="info.canvas_id"
@@ -183,7 +183,7 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { formatDate, UNIT_TABLE, ExtUnitCalculate, ExtGraphDrawing } from '@/utils'
-import AMap from '@/utils/gaode-map'
+import gdMap from '@/utils/gaode-map'
 import { getLbsList } from '@/api/realTimeData'
 import useUserStore from '@/store/modules/user'
 import * as echarts from 'echarts'
@@ -284,122 +284,124 @@ const open = () => {
 
 // #region ********** start 处理高德地图 **********
 // 高德地图
-let map: any = null
+let map: any = ref(null)
 const loadMap = (lbsList: any) => {
-    map = new AMap.Map('map_container', {
-        // 设置地图容器id
-        viewMode: '3D', // 是否为3D地图模式
-        zoom: 11, // 初始化地图级别
-        center: [116.397428, 39.90923] // 初始化地图中心点位置
-    })
-
-    let scale = new AMap.Scale({
-            visible: true
-        }),
-        toolBar = new AMap.ToolBar({
-            visible: true,
-            position: {
-                top: '110px',
-                right: '40px'
-            }
-        }),
-        controlBar = new AMap.ControlBar({
-            visible: true,
-            position: {
-                top: '10px',
-                right: '10px'
-            }
+    gdMap.then((AMap) => {
+        map.value = new AMap.Map('map_container', {
+            // 设置地图容器id
+            viewMode: '3D', // 是否为3D地图模式
+            zoom: 11, // 初始化地图级别
+            center: [116.397428, 39.90923] // 初始化地图中心点位置
         })
-    map.addControl(scale)
-    map.addControl(toolBar)
-    map.addControl(controlBar)
 
-    console.log(map)
+        let scale = new AMap.Scale({
+                visible: true
+            }),
+            toolBar = new AMap.ToolBar({
+                visible: true,
+                position: {
+                    top: '110px',
+                    right: '40px'
+                }
+            }),
+            controlBar = new AMap.ControlBar({
+                visible: true,
+                position: {
+                    top: '10px',
+                    right: '10px'
+                }
+            })
+        map.value.addControl(scale)
+        map.value.addControl(toolBar)
+        map.value.addControl(controlBar)
 
-    if (null == map) {
-        console.log('new gdMap failed!')
-        return
-    }
+        console.log(map.value)
 
-    if (null == lbsList) {
-        console.log('lbsList = null')
-        return
-    }
-
-    if (lbsList.length < 1) {
-        console.log('lbsList = 0')
-        return
-    }
-    gdMapXYConvertorEx(lbsList, function (list: any, lngLatArrays: any) {
-        console.log('------list', list)
-        console.log('------lngLatArrays', lngLatArrays)
-
-        let maxLon = lngLatArrays[0][0]
-        let minLon = lngLatArrays[0][0]
-        let maxLat = lngLatArrays[0][1]
-        let minLat = lngLatArrays[0][1]
-
-        let marker = null
-        let markerList = []
-        let pathList = []
-
-        for (let i in lngLatArrays) {
-            console.log(i)
-            console.log(lngLatArrays[i])
-            maxLon = Math.max(maxLon, lngLatArrays[i][0])
-            minLon = Math.min(minLon, lngLatArrays[i][0])
-            maxLat = Math.max(maxLat, lngLatArrays[i][1]) //找出maxLat和lbs.lat两个中的最大值，然后把它赋给maxLat
-            minLat = Math.min(minLat, lngLatArrays[i][1])
+        if (null == map.value) {
+            console.log('new gdMap failed!')
+            return
         }
 
-        let index = 0
-
-        for (let i in list) {
-            console.log('1312312312312', list[i])
-            if (index !== 0) {
-                marker = new AMap.Marker({
-                    position: list[i].lngLatArr,
-                    title: list[i].date
-                })
-            } else {
-                let endIcon = new AMap.Icon({
-                    // 图标尺寸
-                    size: new AMap.Size(500, 500),
-                    // 图标的取图地址
-                    image: new URL('@/assets/images/truck.png', import.meta.url).href,
-                    // 图标所用图片大小
-                    imageSize: new AMap.Size(40, 40),
-                    // 图标取图偏移量
-                    imageOffset: new AMap.Pixel(0, 0)
-                })
-                marker = new AMap.Marker({
-                    position: list[i].lngLatArr,
-                    icon: endIcon,
-                    title: list[i].date,
-                    offset: new AMap.Pixel(-20, -20)
-                })
-            }
-            index++
-            markerList.push(marker)
-            pathList.push(new AMap.LngLat(list[i].lngLatArr[0], list[i].lngLatArr[1]))
+        if (null == lbsList) {
+            console.log('lbsList = null')
+            return
         }
 
-        console.log(markerList)
-        map.add(markerList)
-        pathList.reverse()
-        let polyline = new AMap.Polyline({
-            path: pathList,
-            strokeWeight: 10, //线条宽度
-            lineJoin: 'round', //折线拐点连接处样式
-            showDir: true,
-            strokeColor: '#3366bb' // 线颜色
-        })
-        map.add(polyline)
+        if (lbsList.length < 1) {
+            console.log('lbsList = 0')
+            return
+        }
+        gdMapXYConvertorEx(lbsList, function (list: any, lngLatArrays: any) {
+            console.log('------list', list)
+            console.log('------lngLatArrays', lngLatArrays)
 
-        const ptSW = new AMap.LngLat(Number(minLon) - 0.001, Number(minLat) - 0.001)
-        const ptNE = new AMap.LngLat(Number(maxLon) + 0.001, Number(maxLat) + 0.001)
-        const bounds = new AMap.Bounds(ptSW, ptNE) //描叙一个矩形的地理坐标访问
-        map.setBounds(bounds)
+            let maxLon = lngLatArrays[0][0]
+            let minLon = lngLatArrays[0][0]
+            let maxLat = lngLatArrays[0][1]
+            let minLat = lngLatArrays[0][1]
+
+            let marker = null
+            let markerList = []
+            let pathList = []
+
+            for (let i in lngLatArrays) {
+                console.log(i)
+                console.log(lngLatArrays[i])
+                maxLon = Math.max(maxLon, lngLatArrays[i][0])
+                minLon = Math.min(minLon, lngLatArrays[i][0])
+                maxLat = Math.max(maxLat, lngLatArrays[i][1]) //找出maxLat和lbs.lat两个中的最大值，然后把它赋给maxLat
+                minLat = Math.min(minLat, lngLatArrays[i][1])
+            }
+
+            let index = 0
+
+            for (let i in list) {
+                console.log('1312312312312', list[i])
+                if (index !== 0) {
+                    marker = new AMap.Marker({
+                        position: list[i].lngLatArr,
+                        title: list[i].date
+                    })
+                } else {
+                    let endIcon = new AMap.Icon({
+                        // 图标尺寸
+                        size: new AMap.Size(500, 500),
+                        // 图标的取图地址
+                        image: new URL('@/assets/images/truck.png', import.meta.url).href,
+                        // 图标所用图片大小
+                        imageSize: new AMap.Size(40, 40),
+                        // 图标取图偏移量
+                        imageOffset: new AMap.Pixel(0, 0)
+                    })
+                    marker = new AMap.Marker({
+                        position: list[i].lngLatArr,
+                        icon: endIcon,
+                        title: list[i].date,
+                        offset: new AMap.Pixel(-20, -20)
+                    })
+                }
+                index++
+                markerList.push(marker)
+                pathList.push(new AMap.LngLat(list[i].lngLatArr[0], list[i].lngLatArr[1]))
+            }
+
+            console.log(markerList)
+            map.value.add(markerList)
+            pathList.reverse()
+            let polyline = new AMap.Polyline({
+                path: pathList,
+                strokeWeight: 10, //线条宽度
+                lineJoin: 'round', //折线拐点连接处样式
+                showDir: true,
+                strokeColor: '#3366bb' // 线颜色
+            })
+            map.value.add(polyline)
+
+            const ptSW = new AMap.LngLat(Number(minLon) - 0.001, Number(minLat) - 0.001)
+            const ptNE = new AMap.LngLat(Number(maxLon) + 0.001, Number(maxLat) + 0.001)
+            const bounds = new AMap.Bounds(ptSW, ptNE) //描叙一个矩形的地理坐标访问
+            map.value.setBounds(bounds)
+        })
     })
 }
 
@@ -658,7 +660,7 @@ const reflashStartEndTimeData = () => {
         }
 
         //建立连接后发送请求
-        webSocket.value.onopen = function (event: any) {
+        webSocket.value.onopen = function () {
             console.log('创建连接成功，发送数据')
             console.log(JSON.stringify(data))
             webSocket.value.send(JSON.stringify(data))
@@ -713,7 +715,7 @@ const reflashStartEndTimeData = () => {
             }
 
             //websocket可能会传多次数据，为防止数据覆盖，直接使用that.yibiaoDatas
-            yibiaoDatasUnitTransfer(yibiaoDatas.value, props.rowData)
+            yibiaoDatasUnitTransfer(yibiaoDatas.value)
 
             console.log('transfer datas ok')
 
@@ -743,9 +745,7 @@ const reflashStartEndTimeData = () => {
                     let x = i - 1 + 2
                     let timeBefore: any = new Date(yibiaoDatas.value[x].date)
                     let timeAfter: any = new Date(yibiaoDatas.value[i].date)
-                    yibiaoDatas.value[i]['gap'] = parseFloat(
-                        (timeAfter - timeBefore) / 60 / 1000
-                    ).toFixed(1)
+                    yibiaoDatas.value[i]['gap'] = ((timeAfter - timeBefore) / 60 / 1000).toFixed(1)
                 }
             }
 
@@ -773,7 +773,7 @@ const linCount: any = ref(0)
 const tempLine: any = ref([])
 const changeLineDatas: any = ref([])
 const lineDatas: any = ref({})
-const yibiaoDatasUnitTransfer = (datas: any, node: any) => {
+const yibiaoDatasUnitTransfer = (datas: any) => {
     for (let data of datas) {
         if (null == data.line_datas) {
             dataCount.value++
@@ -1132,8 +1132,6 @@ const setupDataToEcharts = () => {
                         formatNumber(dt.getHours()) +
                         ':' +
                         formatNumber(dt.getMinutes())
-
-                    const du = props.rowData.dataInfos[lineNumber].displayUnit
 
                     const displayValue = transferToUnit(
                         value,
@@ -1713,9 +1711,7 @@ const close = () => {
 
 <style lang="scss" scoped>
 .dialog-container {
-    // display: flex;
-    // flex-direction: column;
-    width: 90%;
+    width: 100%;
     .dialog-form {
         .dialog-cell {
             padding: 15px;

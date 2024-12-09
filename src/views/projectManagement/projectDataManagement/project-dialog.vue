@@ -65,7 +65,7 @@ const emit = defineEmits<{
 const userStore = useUserStore()
 
 const dialogInnerStyle = reactive({
-    height: '150px'
+    height: '120px'
 }) // 弹窗高度
 const loading = ref(false) // 加载样式
 const formData = ref({}) // 表单数据

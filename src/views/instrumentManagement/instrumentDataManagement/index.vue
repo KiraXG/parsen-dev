@@ -75,10 +75,11 @@
                             icon="InfoFilled"
                             icon-color="#626AEF"
                             title="确定要删除吗？"
+                            placement="top"
                             @confirm="handleDelete(row)"
                         >
                             <template #reference>
-                                <span style="margin-left: 12px">
+                                <span>
                                     <el-button type="danger" icon="Delete" link>删除仪表</el-button>
                                 </span>
                             </template>
@@ -88,7 +89,12 @@
                         <el-button type="danger" icon="Odometer" link @click="offsetAndZero(row)"
                             >对表调零</el-button
                         >
-                        <el-button type="danger" icon="EditPen" link @click="updateImei(row)"
+                        <el-button
+                            type="danger"
+                            icon="EditPen"
+                            link
+                            @click="updateImei(row)"
+                            style="margin-left: 0"
                             >替换更新</el-button
                         >
                     </div>
@@ -110,7 +116,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import CompanyTree from '@/components/company-tree/index.vue'
 import { UNIT_TABLE, tagTypes } from '@/utils'
 import { deleteNode, showControl } from '@/api/instrumentManagement'
@@ -390,7 +396,7 @@ const fieldLists = reactive([
         prop: 'operation',
         type: 'operation',
         fixed: 'right',
-        minWidth: 200
+        minWidth: 190
     }
 ])
 

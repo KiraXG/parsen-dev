@@ -36,12 +36,29 @@
                     }}</el-button>
                 </template>
                 <template #operation="{ row }">
-                    <el-button type="primary" icon="Edit" size="small" @click="handleEdit(row)"
+                    <el-button type="primary" link icon="Edit" size="small" @click="handleEdit(row)"
                         >编辑</el-button
+                    ><el-popconfirm
+                        placement="top"
+                        confirm-button-text="是"
+                        cancel-button-text="否"
+                        icon="InfoFilled"
+                        icon-color="#626AEF"
+                        title="确定要删除吗？"
+                        @confirm="handleDelete(row)"
                     >
-                    <el-button type="danger" icon="Delete" size="small" @click="handleDelete(row)"
-                        >删除</el-button
-                    >
+                        <template #reference>
+                            <span style="margin-left: 12px;">
+                                <el-button
+                                    type="danger"
+                                    link
+                                    icon="Delete"
+                                    size="small"
+                                    >删除</el-button
+                                ></span
+                            >
+                        </template>
+                    </el-popconfirm>
                 </template>
             </ps-search-table>
             <project-dialog
@@ -129,7 +146,7 @@ const fieldLists = reactive([
         prop: 'operation',
         type: 'operation',
         fixed: 'right',
-        minWidth: 200
+        minWidth: 180
     }
 ])
 // #endregion ********** end 处理表格数据 **********

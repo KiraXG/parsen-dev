@@ -123,7 +123,6 @@ export const ExtUnitCalculate = {
     //云南氧气厂的计算公式
     '10_0': function (kPa: any) {
         const rou = 1140
-        const g = 9.8
         const mmWG = (kPa * 250) / 2.45
         let v = 0
         if (mmWG < 250) {
@@ -462,8 +461,6 @@ export const DrawFunc = {
         img.src = drawObj.imgSrc //"wo_guan.png";
         const rect = drawObj.rect
 
-        var that = this
-
         img.onload = function () {
             ctx.drawImage(img, 0, 0, domCanvas.width, domCanvas.height)
 
@@ -550,8 +547,6 @@ export const DrawFunc = {
         let img = new Image()
         img.src = drawObj.imgSrc //"wo_guan.png";
         const rect = drawObj.rect
-
-        var that = this
 
         img.onload = function () {
             ctx.drawImage(img, 0, 0, domCanvas.width, domCanvas.height)
