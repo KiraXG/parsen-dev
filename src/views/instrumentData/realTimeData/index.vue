@@ -15,22 +15,21 @@
                 ref="companyTree"
                 class="companyTree"
                 :filterText="filterText"
-                @echartsLoading="echartsLoading"
+                @dataLoading="dataLoading"
                 @getNodeClickData="getNodeClickData"
             ></company-tree>
-            <el-button class="warning-button">详细报警信息</el-button>
+            <el-button class="warning-button" @click="showDialogFunc">详细报警信息</el-button>
             <div id="alarm-preview" class="card alarm-preview"></div>
         </div>
         <div class="realTimeData-right">
             <ps-search-table
                 rowKey="node_id"
                 :border="true"
-                :columns="fieldLists"
                 :fieldLists="fieldLists"
                 :tableData="_tableData"
             >
                 <template #tableHeader>
-                    <el-button type="primary" @click="outPutList">导出</el-button>
+                    <el-button type="primary" @click="outputList">导出</el-button>
                 </template>
                 <!-- 仪表名称 -->
                 <template #node_name="{ row }">
@@ -56,37 +55,50 @@
                             <el-tag
                                 v-for="(item, index) in nodeData(row.node_data)"
                                 :key="index"
-                                :type="tagType(index)"
+                                :type="tagType(item)"
                                 style="margin-bottom: 5px"
-                                >{{ item }}</el-tag
+                                >{{ item.name }}</el-tag
                             >
                         </div>
                     </div>
                 </template>
 
-                <template #operation="scope">
+                <template #operation="{ row }">
                     <el-button
                         type="primary"
                         link
                         icon="DocumentChecked"
-                        style="margin-right: 38px"
+                        @click="showInstrumentDetail(row)"
                         >仪表详情</el-button
                     >
-                    <el-button type="danger" icon="Calendar" link
+                    <el-button type="danger" icon="Calendar" link @click="showAlarmRecord(row)"
                         >报警记录</el-button
                     >
                 </template>
             </ps-search-table>
         </div>
     </div>
+    <realTimeData-detail-dialog
+        :openDialog="openDialog"
+        :dialogHeader="dialogHeader"
+        :rowData="rowData"
+        @close="closeDialog"
+    >
+        <ps-table :fieldLists="fieldLists"></ps-table>
+    </realTimeData-detail-dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import CompanyTree from '@/components/company-tree/index.vue'
+import useUserStore from '@/store/modules/user'
 import { alarmOption } from './realTimeData-echats'
 import { formatDate, UNIT_TABLE, tagTypes } from '@/utils'
 import * as echarts from 'echarts'
+import { ElMessage } from 'element-plus'
+import RealTimeDataDetailDialog from './realTimeData-detail-dialog.vue'
+
+const userStore = useUserStore()
 
 // #region ********** start 左侧树方法 **********
 const curCheckData: any = ref([]) // 当前点击节点的project总数
@@ -100,15 +112,15 @@ const getNodeClickData = (params: any) => {
     setTableData(curCheckData)
     draw()
 }
+
+// 加载样式
+const loading = ref(false)
+const dataLoading = (params: any) => {
+    loading.value = params.loading.value
+}
 // #endregion ********** end 左侧树方法 **********
 
 // #region ********** start 处理echarts图表 **********
-// echarts区域加载样式
-const loading = ref(false)
-const echartsLoading = (params: any) => {
-    loading.value = params.loading.value
-}
-
 // 初始化图表
 const chartsDom: any = ref(null)
 const initCharts = () => {
@@ -141,25 +153,23 @@ const draw = () => {
 // #endregion ********** end 处理echarts图表 **********
 
 // 导出按钮
-const outPutList = () => {
-    let listData: any = []
+const outputList = () => {
+    if (!curCheckData.value.length) {
+        ElMessage.error('没有可以导出的数据！')
+        return
+    }
+    const listData: any = []
     let now: any = new Date()
     curCheckData.value.forEach((item: any) => {
-        let companyName = item['company_name'] ? item['company_name'] : ''
-        let projectName = item['project_name'] ? item['project_name'].replace(',', ':') : ''
-        let nodeName = item['node_name'] ? item['node_name'] : ''
         let nodeData = item['node_data'] ? item['node_data'] : ''
         let date = nodeData['date'] ? nodeData['date'] : ''
-        let group = item['group'] ? item['group'] : ''
-        let imei = item['imei'] ? item['imei'] : ''
-        let iccid = item['iccid'] ? item['iccid'] : ''
         listData.push({
-            company: companyName,
-            project: projectName,
-            nodeName,
-            imei,
-            group,
-            iccid,
+            company: item['company_name'] ? item['company_name'] : '',
+            project: item['project_name'] ? item['project_name'].replace(',', ':') : '',
+            nodeName: item['node_name'] ? item['node_name'] : '',
+            imei: item['node_data'] ? item['node_data'] : '',
+            group: item['group'] ? item['group'] : '',
+            iccid: item['iccid'] ? item['iccid'] : '',
             lastTime: date ? formatDate(date, 'YYYY-MM-DD HH:mm:ss') : '',
             state: (now - +new Date(date)) / 1000 / 60 > item['send_gap'] * 3 ? '离线' : '在线'
         })
@@ -216,7 +226,7 @@ const fieldLists = reactive([
             span: 1
         },
         sortable: true,
-        width: 150
+        minWidth: 150
     },
     {
         label: '工位号',
@@ -226,14 +236,14 @@ const fieldLists = reactive([
     {
         label: '数据',
         prop: 'node_data',
-        width: 170
+        minWidth: 170
     },
     {
         label: '操作',
         prop: 'operation',
         type: 'operation',
         fixed: 'right',
-        minWidth: 140
+        minWidth: 180
     }
 ])
 
@@ -246,6 +256,7 @@ const images: any = reactive({
     多参量: new URL('@/assets/images/multiple.png', import.meta.url).href,
     液位: new URL('@/assets/images/liquid.png', import.meta.url).href
 })
+
 const getImage = (node_name: any) => {
     const includesName: any = nodeName.filter((name: any) => node_name.includes(name))
     return images[includesName[0]]
@@ -263,7 +274,7 @@ const nodeData = (data: any) => {
     for (let i of data.line_datas) {
         for (let j of UNIT_TABLE) {
             if (i.unit == j.type) {
-                tags.push(`${j.desc} ${i.value} ${j.name}`)
+                tags.push({ name: `${j.desc} ${i.value} ${j.name}`, type: i.node_line })
             }
         }
     }
@@ -271,10 +282,41 @@ const nodeData = (data: any) => {
 }
 
 // tag渲染
-const tagType = (index: any) => {
-    return tagTypes[index % tagTypes.length]
+const tagType = (item: any) => {
+    return tagTypes[item.type]
 }
 // #endregion ********** end 处理表格数据 **********
+
+// #region ********** start 处理表弹窗表单数据 **********
+const dialogHeader: any = ref('') // 弹窗标题
+const rowData: any = ref({}) // 点击当前行的数据
+const openDialog: any = ref(false) // 打开弹窗
+
+// 仪表详情
+const showInstrumentDetail = (row: any) => {
+    console.log(row)
+    if (!row.node_data) {
+        ElMessage.error('没有数据可以查看！')
+        return
+    }
+    rowData.value = row
+    dialogHeader.value = `『 ${rowData.value.node_name} 』详情`
+    openDialog.value = true
+}
+
+// 报警记录
+const showAlarmRecord = (row: any) => {
+    console.log(row)
+}
+
+// 关闭弹窗
+const closeDialog = () => {
+    openDialog.value = false
+    dialogHeader.value = ''
+    rowData.value = {}
+}
+
+const showDialogFunc = () => {}
 
 onMounted(() => {
     initCharts()

@@ -54,7 +54,7 @@ import { computed, ref, watch } from 'vue'
 const props = defineProps({
     // 弹窗宽度
     width: {
-        type: Number,
+        type: [Number, String],
         default: 700
     },
     // 弹窗内部高度
@@ -136,5 +136,7 @@ const closeDialog = () => {
     width: 100%;
     height: 100%;
     overflow: auto;
+    display: flex;
+    justify-content: center;
 }
 </style>
