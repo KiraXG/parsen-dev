@@ -9,7 +9,7 @@ const router = createRouter({
     history: createWebHistory(), // history模式
     routes: [...constantRoutes],
     // 滚动行为
-    scrollBehavior(to, from, savedPosition) {
+    scrollBehavior(to, from, _savedPosition) {
         let el = document.querySelector('.container') as any
         // 记录跳转前的滚动条高度
         scrollRouter[from.path] = el?.scrollTop || 0
@@ -85,7 +85,7 @@ function handleRouteInEditableTabs(to: any, store: any) {
 }
 
 //路由前置守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
     // console.log(scrollRouter);
     //如果没有匹配到路由,则跳转到404页面F
     if (to.matched.length === 0) {

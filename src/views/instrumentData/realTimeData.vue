@@ -163,17 +163,16 @@ const outputList = () => {
     const listData: any = []
     let now: any = new Date()
     curCheckData.value.forEach((item: any) => {
-        let nodeData = item['node_data'] ? item['node_data'] : ''
-        let date = nodeData['date'] ? nodeData['date'] : ''
+        let node_data = item.node_data || ''
         listData.push({
-            company: item['company_name'] ? item['company_name'] : '',
-            project: item['project_name'] ? item['project_name'].replace(',', ':') : '',
-            nodeName: item['node_name'] ? item['node_name'] : '',
-            imei: item['node_data'] ? item['node_data'] : '',
-            group: item['group'] ? item['group'] : '',
-            iccid: item['iccid'] ? item['iccid'] : '',
-            lastTime: date ? formatDate(date, 'YYYY-MM-DD HH:mm:ss') : '',
-            state: (now - +new Date(date)) / 1000 / 60 > item['send_gap'] * 3 ? '离线' : '在线'
+            company: item.company_name ? item.company_name : '',
+            project: item.project_name ? item.project_name.replace(',', ':') : '',
+            nodeName: item.node_name ? item.node_name : '',
+            imei: item.imei ? item.imei : '',
+            group: item.group ? item.group : '',
+            iccid: item.iccid ? item.iccid : '',
+            lastTime: node_data && node_data.date ? formatDate(node_data.date, 'YYYY-MM-DD HH:mm:ss') : '',
+            state: (now - +new Date(node_data.date)) / 1000 / 60 > item['send_gap'] * 3 ? '离线' : '在线'
         })
     })
     let str = `公司名称,项目名称,仪表名称,imei号,工位号,iccid,最后通信时间,仪表状态\n`

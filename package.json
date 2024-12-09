@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --open",
     "build": "vue-tsc -b && vite build",
-    "build:dev": "vue-tsc && vite build --mode dev",
+    "build:prd": "vue-tsc && vite build --mode production",
     "preview": "vite preview",
     "format": "prettier --write \"src/**/*.{js,vue,ts,scss}\""
   },

@@ -22,7 +22,7 @@ export const constantRoutes = [
     {
         path: '/login',
         name: 'login',
-        component: () => import('@/views/login/index.vue'), // 组件按需加载
+        component: () => import('@/views/login/login.vue'), // 组件按需加载
         meta: {
             title: '登录',
             show: false,
@@ -41,7 +41,7 @@ export const constantRoutes = [
             {
                 path: '/home',
                 name: 'home',
-                component: () => import('@/views/home/index.vue'),
+                component: () => import('@/views/home/home.vue'),
                 meta: {
                     title: '工作台',
                     icon: 'HelpFilled',
@@ -63,7 +63,7 @@ export const constantRoutes = [
                     {
                         path: '/instrumentData/realTimeData',
                         name: 'realTimeData',
-                        component: () => import('@/views/instrumentData/realTimeData/index.vue'),
+                        component: () => import('@/views/instrumentData/realTimeData.vue'),
                         meta: {
                             title: '实时数据',
                             show: true,
@@ -99,7 +99,7 @@ export const constantRoutes = [
                         name: 'instrumentDataManagement',
                         component: () =>
                             import(
-                                '@/views/instrumentManagement/instrumentDataManagement/index.vue'
+                                '@/views/instrumentManagement/instrumentDataManagement.vue'
                             ),
                         meta: {
                             title: '仪表数据管理',
@@ -124,7 +124,7 @@ export const constantRoutes = [
                         path: '/projectManagement/projectDataManagement',
                         name: 'projectDataManagement',
                         component: () =>
-                            import('@/views/projectManagement/projectDataManagement/index.vue'),
+                            import('@/views/projectManagement/projectDataManagement.vue'),
                         meta: {
                             title: '项目数据管理',
                             show: true,
@@ -149,7 +149,7 @@ export const constantRoutes = [
                         name: 'companyOwnershipRelationship',
                         component: () =>
                             import(
-                                '@/views/companyManagement/companyOwnershipRelationship/index.vue'
+                                '@/views/companyManagement/companyOwnershipRelationship/companyOwnershipRelationship.vue'
                             ),
                         meta: {
                             title: '公司归属关系',
@@ -161,7 +161,7 @@ export const constantRoutes = [
                         path: '/companyManagement/companyDataManagement',
                         name: 'companyDataManagement',
                         component: () =>
-                            import('@/views/companyManagement/companyDataManagement/index.vue'),
+                            import('@/views/companyManagement/companyDataManagement/companyDataManagement.vue'),
                         meta: {
                             title: '公司数据管理',
                             show: true,
@@ -184,7 +184,7 @@ export const constantRoutes = [
                     {
                         path: '/SIMCardManagement/SIMCardList',
                         name: 'SIMCardList',
-                        component: () => import('@/views/SIMCardManagement/SIMCardList/index.vue'),
+                        component: () => import('@/views/SIMCardManagement/SIMCardList.vue'),
                         meta: {
                             title: 'SIM卡列表',
                             show: true,
@@ -198,7 +198,7 @@ export const constantRoutes = [
     {
         path: '/404',
         name: '404',
-        component: () => import('@/views/404/index.vue'),
+        component: () => import('@/views/404/404.vue'),
         meta: {
             show: false
         }

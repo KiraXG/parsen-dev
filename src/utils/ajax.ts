@@ -2,6 +2,7 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import useUserStore from '@/store/modules/user'
+import router from '@/router'
 
 // 使用axios对象的create方法，创建axios实例
 const ajax = axios.create({
@@ -41,6 +42,7 @@ ajax.interceptors.response.use(
         // 返回200也分正确和错误信息
         // result为1时正确，0为有错误参数
         if (response.data.result == '0') {
+            if (response.data.err_msg.includes('重新登录')) router.replace('/login')
             // 出错时在提示并在控制台输出错误信息
             ElMessage.error(response.data.err_msg || '操作失败')
             console.error('Error:', response)
