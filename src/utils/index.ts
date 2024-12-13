@@ -163,14 +163,16 @@ export const gdMapXYConvertorEx = (AMap: any, lbsList: any, xyHandler: any) => {
 }
 
 // 导出excel表格
-export const exportExcel = (fileName: any, sheetData: any, fieldLists: any, sheetName?: any) => {
+export const exportExcel = (fileName: any, sheetData: any, fieldLists: any, columnWidths?: any, sheetName?: any) => {
     const option: any = {}
     const sheetHeader: any = [] // 第一行 label
     const sheetFilter: any = [] // 列过滤 key
     for (let i of fieldLists.value) {
+        if (i.type === 'operation') continue
         sheetHeader.push(i.label)
     }
     for (let i of fieldLists.value) {
+        if (i.type === 'operation') continue
         sheetFilter.push(i.prop)
     }
     option.fileName = fileName
@@ -179,7 +181,8 @@ export const exportExcel = (fileName: any, sheetData: any, fieldLists: any, shee
             sheetHeader, // 第一行 label
             sheetFilter, // 列过滤 key
             sheetData, // 数据 [{ key: value }]
-            sheetName: sheetName || 'sheet' // sheet名 字
+            sheetName: sheetName || 'sheet', // sheet名 字
+            columnWidths: columnWidths || [] // 每一列的宽度，不设就是默认宽度；1columnWidths 大约在1个字宽度左右
         }
     ]
     const toExcel = new ExportJsonExcel(option)

@@ -25,7 +25,7 @@
 import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import useUserStore from '@/store/modules/user'
-import { formatDate } from '@/utils'
+import { formatDate, exportExcel } from '@/utils'
 import { getSimInfo, companySim, allSimUpdate } from '@/api/SIMCardList'
 
 const userStore = useUserStore()
@@ -74,36 +74,23 @@ const getCurTableData = (params: any) => {
 // 导出按钮
 const outputList = () => {
     const listData: any = []
-    curTableData.value.forEach((item: any) => {
+    tableData.value.forEach((item: any) => {
         listData.push({
-            iccid: item.iccid,
-            imei: item.imei,
-            project: item.project_name,
-            cpmpany: item.company_name,
-            activate_time: item.activate_time,
-            expiry_date: item.expiry_date,
-            status: item.status,
-            residue_flow: item.residue_flow,
-            network_type: item.network_type,
+            imei: item.imei || '',
+            iccid: item.iccid || '',
+            project_name: item.project_name || '',
+            company_name: item.company_name || '',
+            status: item.status || '',
+            network_type: item.network_type || '',
+            activate_time: item.activate_time || '',
+            expiry_date: item.expiry_date || '',
+            residue_flow: item.residue_flow || '',
             last_date: formatDate(item.last_date, 'YYYY-MM-DD HH:mm:ss')
         })
     })
-    let str = `iccid,imei,项目名称,所属公司,激活时间,到期时间,状态,本月剩余流量,网络类型,上传时间\n`
-    // 增加  为了不让表格显示科学计数法或者其他格式
-    for (let i = 0; i < listData.length; i++) {
-        for (const key in listData[i]) {
-            str += `${listData[i][key] + '\t'},`
-        }
-        str += '\n'
-    }
-    // encodeURIComponent解决中文乱码
-    const uri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(str)
-    // 通过创建a标签实现
-    const link = document.createElement('a')
-    link.href = uri
-    // 对下载的文件命名
-    link.download = 'sim卡信息.csv'
-    link.click()
+    const fileName = `SIM卡列表_${formatDate(new Date(), 'YYYY-MM-DD HH:mm:ss')}`
+    const excelCellWidth = [8, 9, 8, 3, 3, 3, 5, 5, 5, 9]
+    exportExcel(fileName, listData, fieldLists, excelCellWidth)
 }
 
 // 全部更新
@@ -118,7 +105,7 @@ const allUpdate = async () => {
 }
 
 // 表格column
-const fieldLists = reactive([
+const fieldLists = ref([
     {
         label: 'imei',
         prop: 'imei',

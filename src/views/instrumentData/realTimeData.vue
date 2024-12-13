@@ -96,7 +96,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import CompanyTree from '@/components/company-tree/index.vue'
 import { alarmOption } from './realTimeData-echarts'
-import { formatDate, translateUnitDesp, tagTypes } from '@/utils'
+import { formatDate, translateUnitDesp, tagTypes, exportExcel } from '@/utils'
 import * as echarts from 'echarts'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
@@ -178,13 +178,13 @@ const outputList = () => {
     curCheckData.value.forEach((item: any) => {
         let node_data = item.node_data || ''
         listData.push({
-            company: item.company_name ? item.company_name : '',
-            project: item.project_name ? item.project_name.replace(',', ':') : '',
-            nodeName: item.node_name ? item.node_name : '',
-            imei: item.imei ? item.imei : '',
-            group: item.group ? item.group : '',
-            iccid: item.iccid ? item.iccid : '',
-            lastTime:
+            company_name: item.company_name || '',
+            project_name: item.project_name ? item.project_name.replace(',', ':') : '',
+            node_name: item.node_name || '',
+            imei: item.imei || '',
+            group: item.group || '',
+            iccid: item.iccid || '',
+            node_data:
                 node_data && node_data.date
                     ? formatDate(node_data.date, 'YYYY-MM-DD HH:mm:ss')
                     : '',
@@ -194,22 +194,9 @@ const outputList = () => {
                     : '在线'
         })
     })
-    let str = `公司名称,项目名称,仪表名称,imei号,工位号,iccid,最后通信时间,仪表状态\n`
-    // 增加 为了不让表格显示科学计数法或者其他格式
-    for (let i = 0; i < listData.length; i++) {
-        for (const key in listData[i]) {
-            str += `${listData[i][key] + '\t'},`
-        }
-        str += '\n'
-    }
-    // encodeURIComponent解决中文乱码
-    const uri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(str)
-    // 通过创建a标签实现
-    const link = document.createElement('a')
-    link.href = uri
-    // 对下载的文件命名
-    link.download = 'json数据表.csv'
-    link.click()
+    const fileName = `实时数据_${formatDate(new Date(), 'YYYY-MM-DD HH:mm:ss')}`
+    const excelCellWidth = [5, 6, 8, 8, 5, 10, 4]
+    exportExcel(fileName, listData, fieldLists, excelCellWidth)
 }
 
 // #region ********** start 处理表格数据 **********
@@ -221,7 +208,7 @@ const setTableData = (data: any) => {
 const _tableData = computed(() => tableData.value)
 
 // 表格column
-const fieldLists = reactive([
+const fieldLists = ref([
     {
         label: '所属公司',
         prop: 'company_name',
@@ -261,6 +248,11 @@ const fieldLists = reactive([
         label: '数据',
         prop: 'node_data',
         minWidth: 170
+    },
+    {
+        label: '状态',
+        prop: 'state',
+        isShow: false
     },
     {
         label: '操作',
