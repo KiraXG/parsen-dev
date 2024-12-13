@@ -18,6 +18,7 @@
         </div>
         <!-- 登录后打招呼 -->
         <div class="head-right">
+            <!-- <div style="color: white; margin-right: 100px;">您好，欢迎使用新版远程监控系统，如发现问题或可以优化的地方，欢迎微信联系我: hgh990517</div> -->
             <div class="right-userInfo">您好，{{ userInfo.company_full_name }}</div>
             <el-button type="primary" icon="SwitchButton" circle @click="logout" />
         </div>

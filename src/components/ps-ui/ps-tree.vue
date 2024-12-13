@@ -130,6 +130,14 @@ const treeRef = ref<InstanceType<typeof ElTree>>()
 watch(_filterText, (val) => {
     treeRef.value!.filter(val)
 })
+
+const setTreeSelectNode = (val: any) => {
+    treeRef.value!.setCheckedKeys(val)
+}
+
+defineExpose({
+    setTreeSelectNode
+})
 </script>
 
 <style lang="scss" scoped>

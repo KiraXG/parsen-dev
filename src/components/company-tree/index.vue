@@ -1,5 +1,6 @@
 <template>
     <ps-tree
+        ref="companyTree"
         :loading="treeLoading"
         :filterText="filterText"
         :treeData="treeData"
@@ -55,7 +56,13 @@ const props = defineProps({
 const emit = defineEmits<{
     getTreeData: [{ treeData: object[]; companyCount: number; itemCount: number }]
     getNodeClickData: [
-        { checkData: object; curCheckData: object[]; alarmCount: number; project: object }
+        {
+            checkData: object
+            curCheckData: object[]
+            alarmCount: number
+            project: object
+            saveData: object
+        }
     ]
     getNewNodeClickData: [{ curCheckData: object[] }]
     dataLoading: [{ loading: object }]
@@ -148,7 +155,7 @@ const companyTreeNodeCheck = async (project: any, check: any) => {
     // console.log('当前点击类型为p的节点', curCompanyChecked)
     // 当前点击的p节点id [id]
     curNodeCheckId.value = curCompanyChecked.map((item: any) => item.id)
-    // console.log('当前点击的p节点id', curNodeCheckId)
+    // console.log('当前点击的p节点id', curNodeCheckId.value)
 
     // 找出未请求过的节点 [id]
     const noRequestedNode = curNodeCheckId.value.filter(
@@ -171,7 +178,7 @@ const companyTreeNodeCheck = async (project: any, check: any) => {
         // 推送到点击过的合集里
         checkData[item.id] = res.node_list
     }
-    // console.log('每个节点请求到的数据{ id: list }', checkData)
+    // console.log('每个节点请求到的数据{ id: list }', checkData.value)
     // 未请求过的节点id推送到合集中
     nodeChecked.value.push(...noRequestedNode)
     // console.log('节点id合集', nodeChecked.value)
@@ -184,8 +191,13 @@ const companyTreeNodeCheck = async (project: any, check: any) => {
     }
     console.log('当前点击project列表', curCheckData.value)
     loading.value = false
+    const saveData: any = {
+        project,
+        check
+    }
+    companyTree.value!.setTreeSelectNode(curNodeCheckId.value)
     emit('dataLoading', { loading })
-    emit('getNodeClickData', { checkData, curCheckData, alarmCount, project })
+    emit('getNodeClickData', { checkData, curCheckData, alarmCount, project, saveData })
 }
 // #endregion ********** end 点击多选框的方法 **********
 
@@ -245,10 +257,21 @@ const companyTreeNodeClick = async (project: any) => {
     }
 }
 
+// 树ref
+const companyTree: any = ref(null)
+
+// 刷新后将已存储的节点再赋值回去
+const setTreeSelectNode = (value: any) => {
+    if (!localStorage.getItem(value)) return
+    const saveData = JSON.parse(localStorage.getItem(value) as any)
+    companyTreeNodeCheck(saveData.project, saveData.check)
+}
+
 // 向父组件暴露方法
 defineExpose({
     updateCheckData,
-    companyTreeNodeClick
+    companyTreeNodeClick,
+    setTreeSelectNode
 })
 </script>
 

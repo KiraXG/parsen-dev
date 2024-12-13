@@ -116,17 +116,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import CompanyTree from '@/components/company-tree/index.vue'
 import { UNIT_TABLE, tagTypes } from '@/utils'
 import { deleteNode, showControl } from '@/api/instrumentManagement'
 import useUserStore from '@/store/modules/user'
 import { ElMessage } from 'element-plus'
+import { useRouter } from 'vue-router'
 import InstrumentDialog from './instrument-dialog.vue'
 
 const loading = ref(false)
 const userStore = useUserStore()
-const companyTree: any = ref(null) // 包含子组件暴露的方法
 
 // #region ********** start 左侧树方法 **********
 const curCheckData: any = ref([]) // 当前点击节点的project总数
@@ -134,12 +134,25 @@ const curCheckNodeData: any = ref({}) // 当前点击节点的project
 const curProject: any = ref({}) // 当前点击节点的project名称
 const filterText: any = ref('') // 筛选数据
 
+// 路由名称
+const $router = useRouter()
+const routerName: any = $router.currentRoute.value.name
 // 点击树的多选框传过来的数据
 const getNodeClickData = (params: any) => {
+    // 存储已选择的节点
+    localStorage.setItem(routerName, JSON.stringify(params.saveData))
     curCheckData.value = params.curCheckData.value
     curProject.value = params.project
     setTableData(curCheckData)
 }
+
+const companyTree: any = ref(null) // 包含子组件暴露的方法
+onMounted(() => {
+    // 刷新后将已存储的节点再赋值回去
+    if (localStorage.getItem(routerName)) {
+        companyTree.value.setTreeSelectNode(routerName)
+    }
+})
 
 // 更新后树的多选框传过来的数据
 const getNewNodeClickData = (params: any) => {

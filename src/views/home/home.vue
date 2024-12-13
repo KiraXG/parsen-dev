@@ -27,6 +27,7 @@ import { ref, onMounted, reactive } from 'vue'
 import { companyOption, itemOption, nodeOption, alarmOption, stateOption } from './home-charts'
 import * as echarts from 'echarts'
 import gdMap from '@/utils/gaode-map'
+import { useRouter } from 'vue-router'
 
 const curCheckData: any = ref([]) // 当前点击节点的project总数
 const companyCount: any = ref(0) // 公司总数
@@ -40,12 +41,25 @@ const getTreeData = (params: any) => {
     draw()
 }
 
+// 路由名称
+const $router = useRouter()
+const routerName: any = $router.currentRoute.value.name
 // 点击树的多选框传过来的数据
 const getNodeClickData = (params: any) => {
+    // 存储已选择的节点
+    localStorage.setItem(routerName, JSON.stringify(params.saveData))
     curCheckData.value = params.curCheckData.value
     alarmCount.value = params.alarmCount.value
     draw()
 }
+
+const companyTree: any = ref(null)
+onMounted(() => {
+    // 刷新后将已存储的节点再赋值回去
+    if (localStorage.getItem(routerName)) {
+        companyTree.value.setTreeSelectNode(routerName)
+    }
+})
 
 // 加载样式
 const loading = ref(false)
