@@ -845,9 +845,6 @@ const close = () => {
             display: flex;
             flex-direction: column;
             align-items: center;
-            .button-container {
-                // margin: 0 auto;
-            }
         }
     }
     .dialog-control {

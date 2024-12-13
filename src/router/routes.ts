@@ -80,6 +80,7 @@ export const constantRoutes = [
                     title: '远程监控',
                     icon: 'MagicStick',
                     show: true,
+                    disabled: true,
                     keepAlive: true
                 }
             },
