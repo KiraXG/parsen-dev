@@ -7,7 +7,7 @@ import router from '@/router'
 // 使用axios对象的create方法，创建axios实例
 const ajax = axios.create({
     baseURL: import.meta.env.VITE_APP_BASE_API, // 基础路径会带上/api
-    timeout: 30000, // 超时时间设置
+    timeout: 300000, // 超时时间设置
     headers: {
         Accept: '*/*',
         'Access-Control-Allow-Origin': '*'
@@ -56,7 +56,7 @@ ajax.interceptors.response.use(
         // 失败回调： 处理http网络错误
         // 定义一个变量：存储网络错误信息
         let message = ''
-        let status = error.response.status
+        let status = error.response ? error.response.status : 0
         // console.log(status)
         // 不同状态码返回不同的信息
         switch (status) {

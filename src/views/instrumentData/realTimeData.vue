@@ -53,7 +53,7 @@
                         </div>
                         <div class="tag-container">
                             <el-tag
-                                v-for="(item, index) in nodeData(row.node_data)"
+                                v-for="(item, index) in translateUnitDesp(row.node_data)"
                                 :key="index"
                                 :type="tagType(item)"
                                 style="margin-bottom: 5px"
@@ -89,15 +89,14 @@
         :rowData="rowData"
         @close="closeDialog"
     >
-        <ps-table :fieldLists="fieldLists"></ps-table>
     </realTimeData-detail-dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import CompanyTree from '@/components/company-tree/index.vue'
-import { alarmOption } from './realTimeData-echats'
-import { formatDate, UNIT_TABLE, tagTypes } from '@/utils'
+import { alarmOption } from './realTimeData-echarts'
+import { formatDate, translateUnitDesp, tagTypes } from '@/utils'
 import * as echarts from 'echarts'
 import { ElMessage } from 'element-plus'
 import RealTimeDataDetailDialog from './realTimeData-detail-dialog.vue'
@@ -171,8 +170,14 @@ const outputList = () => {
             imei: item.imei ? item.imei : '',
             group: item.group ? item.group : '',
             iccid: item.iccid ? item.iccid : '',
-            lastTime: node_data && node_data.date ? formatDate(node_data.date, 'YYYY-MM-DD HH:mm:ss') : '',
-            state: (now - +new Date(node_data.date)) / 1000 / 60 > item['send_gap'] * 3 ? '离线' : '在线'
+            lastTime:
+                node_data && node_data.date
+                    ? formatDate(node_data.date, 'YYYY-MM-DD HH:mm:ss')
+                    : '',
+            state:
+                (now - +new Date(node_data.date)) / 1000 / 60 > item['send_gap'] * 3
+                    ? '离线'
+                    : '在线'
         })
     })
     let str = `公司名称,项目名称,仪表名称,imei号,工位号,iccid,最后通信时间,仪表状态\n`
@@ -217,6 +222,10 @@ const fieldLists = reactive([
     {
         label: '仪表名称',
         prop: 'node_name',
+        search: {
+            type: 'input',
+            span: 1
+        },
         minWidth: 200
     },
     {
@@ -269,18 +278,6 @@ const includeNodeName = (node_name: any) => {
 }
 
 /* 表格——数据 */
-// tag内容
-const nodeData = (data: any) => {
-    const tags: any = []
-    for (let i of data.line_datas) {
-        for (let j of UNIT_TABLE) {
-            if (i.unit == j.type) {
-                tags.push({ name: `${j.desc} ${i.value} ${j.name}`, type: i.node_line })
-            }
-        }
-    }
-    return tags
-}
 
 // tag渲染
 const tagType = (item: any) => {
@@ -314,7 +311,6 @@ const showAlarmRecord = (row: any) => {
 const closeDialog = () => {
     openDialog.value = false
     dialogHeader.value = ''
-    rowData.value = {}
 }
 
 const showDialogFunc = () => {}

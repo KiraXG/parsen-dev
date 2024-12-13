@@ -12,7 +12,7 @@ export const constantRoutes = [
     {
         // 未匹配到任何路由跳转到404页面
         path: '/:pathMatch(.*)*',
-        redirect: '/404',
+        redirect: '/login',
         name: 'Any',
         meta: {
             title: 'Any',
@@ -98,9 +98,7 @@ export const constantRoutes = [
                         path: '/instrumentManagement/instrumentDataManagement',
                         name: 'instrumentDataManagement',
                         component: () =>
-                            import(
-                                '@/views/instrumentManagement/instrumentDataManagement.vue'
-                            ),
+                            import('@/views/instrumentManagement/instrumentDataManagement.vue'),
                         meta: {
                             title: '仪表数据管理',
                             show: true,
@@ -161,7 +159,9 @@ export const constantRoutes = [
                         path: '/companyManagement/companyDataManagement',
                         name: 'companyDataManagement',
                         component: () =>
-                            import('@/views/companyManagement/companyDataManagement/companyDataManagement.vue'),
+                            import(
+                                '@/views/companyManagement/companyDataManagement/companyDataManagement.vue'
+                            ),
                         meta: {
                             title: '公司数据管理',
                             show: true,

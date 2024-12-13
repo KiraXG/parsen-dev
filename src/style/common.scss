@@ -61,4 +61,13 @@ body {
             }
         }
     }
+
+    .table-selected {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        .selected-detail {
+            color: #4099ff;
+        }
+    }
 }

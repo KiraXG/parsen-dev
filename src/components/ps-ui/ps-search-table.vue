@@ -18,7 +18,21 @@
             </div>
         </div>
         <!-- 表格主体 -->
+        <div class="table-selected" v-if="hasSelection">
+            <div>
+                已选择：<span class="selected-detail">{{ selectedData.length }}</span
+                >&nbsp;条数据
+            </div>
+            <el-button
+                style="margin-left: 10px"
+                link
+                type="primary"
+                @click="handleClearSelectedData"
+                >清空选择</el-button
+            >
+        </div>
         <el-table
+            ref="ps_table"
             v-bind="$attrs"
             :data="curPageTableData"
             :row-key="rowKey"
@@ -26,10 +40,20 @@
             :stripe="stripe"
             :highlight-current-row="highlightCurrentRow"
             :default-expand-all="defaultExpandAll"
+            @selection-change="handleSelectionChange"
             v-loading="tableLoading"
             element-loading-text="正在加载数据，请稍等..."
         >
             <slot></slot>
+            <el-table-column
+                fixed
+                :align="'center'"
+                :reserve-selection="true"
+                type="selection"
+                v-if="hasSelection"
+                width="40"
+            />
+            <el-table-column type="index" :align="'center'" v-if="hasIndex" width="50" />
             <template v-for="item in fieldLists" :key="item">
                 <el-table-column
                     v-if="item.isShow ?? true"
@@ -50,7 +74,13 @@
                             :column="scope.column"
                             :scope="scope"
                         >
-                            {{ scope.row[item.prop] || '- -' }}
+                            {{
+                                scope.row[item.prop] === 0
+                                    ? 0
+                                    : scope.row[item.prop]
+                                      ? scope.row[item.prop]
+                                      : '- -'
+                            }}
                         </slot>
                     </template>
                     <!-- table-header -->
@@ -86,6 +116,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
+import type { TableInstance } from 'element-plus'
 
 const props = defineProps({
     // 列表
@@ -126,6 +157,16 @@ const props = defineProps({
             pageSize: 10
         })
     },
+    // 是否多选
+    hasSelection: {
+        type: Boolean,
+        default: false
+    },
+    // 是否有序号
+    hasIndex: {
+        type: Boolean,
+        default: false
+    },
     // 树形结构是否默认展开
     defaultExpandAll: {
         type: Boolean,
@@ -158,9 +199,13 @@ const props = defineProps({
     }
 })
 
+// dom ref
+const ps_table = ref<TableInstance>()
+
 // 定义 emit 方法
 const emit = defineEmits<{
     getCurTableData: [{ curTableData: object }]
+    getSelectedData: [{ selectedData: object }]
 }>()
 
 /* -------------------- 搜索 -------------------- */
@@ -230,6 +275,31 @@ const curPageTableData = computed(() => {
 })
 
 // #endregion ********* 处理表格数据 **********
+
+// 处理多选框
+const selectedData: any = ref([])
+const handleSelectionChange = (data: any) => {
+    selectedData.value = data
+    emit('getSelectedData', { selectedData })
+}
+
+// 清空已选择数据
+const handleClearSelectedData = () => {
+    selectedData.value = []
+    emit('getSelectedData', { selectedData })
+    handleSetSelectedData()
+}
+
+// 处理表格中的选择事件
+const handleSetSelectedData = (rows?: any, ignoreSelectable?: boolean) => {
+    if (rows) {
+        rows.forEach((row: any) => {
+            ps_table.value!.toggleRowSelection(row, undefined, ignoreSelectable)
+        })
+    } else {
+        ps_table.value!.clearSelection()
+    }
+}
 
 /* -------------------- 分页 -------------------- */
 // #region ********* start 处理分页 **********

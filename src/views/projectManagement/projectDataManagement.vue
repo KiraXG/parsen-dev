@@ -48,12 +48,8 @@
                         @confirm="handleDelete(row)"
                     >
                         <template #reference>
-                            <span style="margin-left: 12px;">
-                                <el-button
-                                    type="danger"
-                                    link
-                                    icon="Delete"
-                                    size="small"
+                            <span style="margin-left: 12px">
+                                <el-button type="danger" link icon="Delete" size="small"
                                     >删除</el-button
                                 ></span
                             >

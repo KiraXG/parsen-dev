@@ -55,14 +55,8 @@ const userStore = useUserStore()
 const ruleFormRef = ref()
 // form表单校验规则
 const rules = reactive({
-    account: [
-        { required: true, message: '请输入账号', trigger: 'change' },
-        { min: 2, max: 10, message: '账号长度为2-10位', trigger: 'change' }
-    ],
-    password: [
-        { required: true, message: '请输入密码', trigger: 'change' },
-        { min: 3, max: 20, message: '密码长度为6-20位', trigger: 'change' }
-    ]
+    account: [{ required: true, message: '请输入账号', trigger: 'change' }],
+    password: [{ required: true, message: '请输入密码', trigger: 'change' }]
 })
 
 // ------------------------------------

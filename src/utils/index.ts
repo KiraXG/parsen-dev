@@ -1,4 +1,5 @@
 import { dayjs } from 'element-plus'
+import ExportJsonExcel from 'js-export-excel'
 
 // 判定当前时间是何时
 export const getTime = () => {
@@ -21,12 +22,21 @@ export const getTime = () => {
 }
 
 // 格式化时间
-export const formatDate = (date: any, format: any) => {
-    return dayjs(date).format(format)
+export const formatDate = (date?: any, format?: any, value: any = 0, type: any = 'day') => {
+    return dayjs(date).subtract(value, type).format(format)
 }
 
 // tag 类型
 export const tagTypes = ['primary', 'success', 'warning', 'info', 'danger']
+
+// 字体自适应屏幕大小
+export const fontSize = (font: any) => {
+    const clientWidth =
+        window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth
+    if (!clientWidth) return
+    let fontSize = clientWidth / 1920
+    return font * fontSize
+}
 
 // 黄熙使用的数值单位对照表,2022-02-24 确认过
 export const UNIT_TABLE = [
@@ -90,12 +100,94 @@ export const PRESSURE_UNITS = [
     '21'
 ]
 
-/**
- *
- */
+// 高德地图XY坐标转换的扩展函数，可以实现任意个数的坐标数组进行转换
+export const gdMapXYConvertorEx = (AMap: any, lbsList: any, xyHandler: any) => {
+    if (null == lbsList) {
+        return
+    }
+    if (0 == lbsList.length) {
+        return
+    }
+
+    // 将坐标数组按照40个为一组进行划分
+    const lbsListArr = []
+    const size = 500
+    for (let i = 0; i < lbsList.length; i += size) {
+        lbsListArr.push(lbsList.slice(i, i + size))
+    }
+    // console.log(lbsListArr);
+
+    // 遍历每一组，进行坐标转换，并将时间添加到转换后的数组坐标中（高德地图在进行数组转换时，都是按原来的顺序返回的）
+    let arr: any = []
+    for (let lbItem of lbsListArr) {
+        // 将每一项的坐标提取出来
+        let itemLbArr = []
+        for (let item of lbItem) {
+            itemLbArr.push([item.lon, item.lat])
+        }
+
+        let JSONItemArr = JSON.parse(JSON.stringify(itemLbArr))
+        let transLocation = [] // 转换后的坐标
+        let transLocationArr = [] // 转换后带时间的坐标
+        AMap.convertFrom(JSONItemArr, 'gps', (status: any, result: any) => {
+            // status：complete 表示查询成功，no_data 为查询无结果，error 代表查询错误
+            // 查询成功时，result.locations 即为转换后的高德坐标系
+            if (status === 'complete' && result.info === 'ok') {
+                transLocation = result.locations // 转换后的高德坐标
+                for (let i = 0; i < transLocation.length; i++) {
+                    for (let j = 0; j < lbItem.length; j++) {
+                        if (i === j) {
+                            // console.log("i--", transLocation[i], "j---", lbItem[j]);
+                            transLocationArr.push({
+                                ...transLocation[i],
+                                date: lbItem[j].date,
+                                beforeLonLatArr: [lbItem[j].lon, lbItem[j].lat],
+                                beforeLonLatStr: `${lbItem[j].lon},${lbItem[j].lat}`
+                            })
+                        }
+                    }
+                }
+            }
+            arr.push(...transLocationArr)
+        })
+    }
+    setTimeout(() => {
+        let lngLatArrays = [] // 坐标数组数组
+        for (let item of arr) {
+            lngLatArrays.push([item.lng, item.lat]) // 把数组单独放一个数组
+        }
+
+        let noRepLngLatArrays = Array.from(new Set(lngLatArrays))
+        xyHandler(arr, noRepLngLatArrays)
+    }, 1000)
+}
+
+// 导出excel表格
+export const exportExcel = (fileName: any, sheetData: any, fieldLists: any, sheetName?: any) => {
+    const option: any = {}
+    const sheetHeader: any = [] // 第一行 label
+    const sheetFilter: any = [] // 列过滤 key
+    for (let i of fieldLists.value) {
+        sheetHeader.push(i.label)
+    }
+    for (let i of fieldLists.value) {
+        sheetFilter.push(i.prop)
+    }
+    option.fileName = fileName
+    option.datas = [
+        {
+            sheetHeader, // 第一行 label
+            sheetFilter, // 列过滤 key
+            sheetData, // 数据 [{ key: value }]
+            sheetName: sheetName || 'sheet' // sheet名 字
+        }
+    ]
+    const toExcel = new ExportJsonExcel(option)
+    toExcel.saveExcel()
+}
 
 //每一个仪表的每一路参量,都可以有一个特别的数据转换算法,用于显示客户的特别内容
-export const ExtUnitCalculate = {
+export const ExtUnitCalculate: any = {
     //ID号为30的仪表的第2号参量的特殊内容
     '55_0': function (kPa: any) {
         const rou = 426 //426 kg/m3
@@ -335,10 +427,45 @@ export const ExtUnitCalculate = {
     }
 }
 
+// 单位转义
+export const translateUnit = (value: any, type?: any) => {
+    const data: any = UNIT_TABLE.find((i: any) => i.type === value)
+    return data ? data[type || 'name'] : ''
+}
+
+// 单位转义详细
+export const translateUnitDesp = (data: any) => {
+    if (!data) return
+    const tags: any = []
+    for (let i of data.line_datas) {
+        for (let j of UNIT_TABLE) {
+            if (i.unit == j.type) {
+                tags.push({ name: `${j.desc} ${i.value} ${j.name}`, type: i.node_line })
+            }
+        }
+    }
+    return tags
+}
+
+export const transferToUnit = (data: any, unit: any, displayUnit: any) => {
+    if (unit > 22) {
+        unit = 23
+    }
+    if (displayUnit > 22) {
+        displayUnit = 23
+    }
+    const coef1 = UNIT_TABLE[unit].coef
+    const coef2 = UNIT_TABLE[displayUnit].coef
+    if (0 == coef1 || 0 == coef2) {
+        return 0
+    }
+    const value = parseFloat(data)
+    return (value / coef1) * coef2
+}
 /**
  *
  */
-const PsColor = {
+export const PsColor = {
     PS_BLUE: '#409EFF', //派晟蓝
     PS_GREEN: '#67C23A',
     PS_YELLOW: '#E6A23C',

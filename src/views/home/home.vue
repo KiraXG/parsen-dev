@@ -84,11 +84,11 @@ const handleEchartsData = () => {
         { name: '离线', value: getOffline(now) }
     ]
     chartsData.value = {
-        company: companyOption(company, fontSize),
-        item: itemOption(item, fontSize),
-        node: nodeOption(node, fontSize),
-        alarm: alarmOption(alarm, fontSize),
-        state: stateOption(state, fontSize)
+        company: companyOption(company),
+        item: itemOption(item),
+        node: nodeOption(node),
+        alarm: alarmOption(alarm),
+        state: stateOption(state)
     }
 }
 
@@ -121,15 +121,6 @@ const chartResize = () => {
     for (let chart of Object.values(chartsDom)) {
         ;(chart as any).resize()
     }
-}
-
-// 根据窗口大小设值字体大小
-const fontSize = (res: any) => {
-    const clientWidth =
-        window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth
-    if (!clientWidth) return
-    let fontSize = clientWidth / 1920
-    return res * fontSize
 }
 
 // 渲染数据

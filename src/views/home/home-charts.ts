@@ -1,3 +1,5 @@
+import { fontSize } from '@/utils'
+
 const companyColor = 'rgb(102,169,201)'
 const itemColor = 'rgb(138,188,209)'
 const nodeColor = 'rgb(147,213,220)'
@@ -9,7 +11,7 @@ const tipColor = 'rgb(30,39,50)'
 const shadowColor = '#cdcccc'
 
 // 公司总数
-export const companyOption = (company: any, fontSize: any) => {
+export const companyOption = (company: any) => {
     return {
         title: {
             text: '公司总数',
@@ -77,7 +79,7 @@ export const companyOption = (company: any, fontSize: any) => {
 }
 
 // 项目总数
-export const itemOption = (item: any, fontSize: any) => {
+export const itemOption = (item: any) => {
     return {
         title: {
             text: '项目总数',
@@ -145,7 +147,7 @@ export const itemOption = (item: any, fontSize: any) => {
 }
 
 // 仪表总数
-export const nodeOption = (node: any, fontSize: any) => {
+export const nodeOption = (node: any) => {
     return {
         title: {
             text: '仪表总数',
@@ -213,7 +215,7 @@ export const nodeOption = (node: any, fontSize: any) => {
 }
 
 // 仪表详情
-export const alarmOption = (alarm: any, fontSize: any) => {
+export const alarmOption = (alarm: any) => {
     return {
         title: {
             text: '仪表详情',
@@ -282,7 +284,7 @@ export const alarmOption = (alarm: any, fontSize: any) => {
 }
 
 // 仪表状态
-export const stateOption = (state: any, fontSize: any) => {
+export const stateOption = (state: any) => {
     return {
         title: {
             text: '仪表状态',

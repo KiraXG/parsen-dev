@@ -197,7 +197,7 @@ import {
     setZero,
     displaceImei
 } from '@/api/instrumentManagement'
-import { UNIT_TABLE, PRESSURE_UNITS } from '@/utils'
+import { UNIT_TABLE, PRESSURE_UNITS, transferToUnit } from '@/utils'
 
 const props = defineProps({
     // 打开弹窗
@@ -494,22 +494,6 @@ const unitCodeToName = (code: any) => {
         }
     }
     return ''
-}
-
-const transferToUnit = (data: any, unit: any, displayUnit: any) => {
-    if (unit > 22) {
-        unit = 23
-    }
-    if (displayUnit > 22) {
-        displayUnit = 23
-    }
-    const coef1 = UNIT_TABLE[unit].coef
-    const coef2 = UNIT_TABLE[displayUnit].coef
-    if (0 == coef1 || 0 == coef2) {
-        return 0
-    }
-    const value = parseFloat(data)
-    return (value / coef1) * coef2
 }
 </script>
 

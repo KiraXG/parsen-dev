@@ -102,6 +102,7 @@
 // el-table 表格样式
 .el-table {
     flex: 1;
+    min-height: 350px;
 
     // 修复 safari 浏览器表格错位 https://github.com/HalseySpicy/Geeker-Admin/issues/83
     table {
@@ -153,6 +154,7 @@
     margin-top: 20px;
 }
 
+// 分割线样式
 .el-divider--horizontal {
     margin: 10px 0;
 }

@@ -2,7 +2,6 @@
     <ps-dialog
         :width="'80%'"
         :dialogHeader="dialogHeader"
-        :loading="loading"
         :openDialog="openDialog"
         :isShowConfirm="false"
         :isEdit="false"
@@ -11,6 +10,7 @@
         @close="close"
     >
         <div class="card dialog-container">
+            <!-- 基本信息 -->
             <div class="dialog-form">
                 <el-row>
                     <el-col :span="8">
@@ -55,7 +55,7 @@
                 <el-row>
                     <el-col
                         :span="8"
-                        v-for="(item, index) in nodeData(rowData.node_data)"
+                        v-for="(item, index) in translateUnitDesp(rowData.node_data)"
                         :key="index"
                     >
                         <div class="card dialog-cell">
@@ -66,86 +66,98 @@
             </div>
             <!-- 高德地图 -->
             <div class="dialog-map-echarts">
-                <div id="map_container" class="map-container"></div>
+                <div
+                    id="map_container"
+                    class="card map-container"
+                    v-loading="mapLoading"
+                    element-loading-text="正在加载数据，请稍等..."
+                ></div>
                 <div class="card echarts-container">
-                    <div id="gagueChart" style="width: 100%; height: 70%"></div>
+                    <div id="dataChart" style="width: 100%; height: 70%"></div>
                     <div class="button-container">
                         <el-radio-group
-                            v-for="(item, index) in buttonInfos"
-                            v-model="buttonCharts"
-                            @change="gudgeChart(buttonCharts)"
+                            v-for="(item, index) in dataEchartsInfo"
+                            :key="index"
+                            v-model="curDataEcharts"
+                            @change="drawDataCharts(curDataEcharts)"
                         >
-                            <el-radio-button :label="index">{{ item.line_desc }}</el-radio-button>
+                            <el-radio-button
+                                :label="item.line_desc"
+                                :value="index"
+                            ></el-radio-button>
                         </el-radio-group>
                     </div>
                 </div>
             </div>
-            <!-- 中间设置数据区域的控件 -->
-            <div
-                style="
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    margin-top: 10px;
-                "
-            >
-                <el-switch
-                    style="height: 40px; margin-left: 10px"
-                    v-model="selectStartEndTime"
-                    active-text="自定义时间段"
-                    inactive-text="默认最新24小时"
-                ></el-switch>
+            <div class="card" style="margin-top: 5px; padding-top: 0">
+                <!-- 中间设置数据区域的控件 -->
+                <div class="dialog-control">
+                    <div class="control-left">
+                        <el-radio-group v-model="selectStartEndTime">
+                            <el-radio :value="true" style="margin-right: 15px"
+                                >默认最新24小时</el-radio
+                            >
+                            <el-radio :value="false">自定义时间段</el-radio>
+                        </el-radio-group>
+                        <el-date-picker
+                            v-model="startEndTime"
+                            type="datetimerange"
+                            placeholder="选择开始日期"
+                            :shortcuts="shortcuts"
+                            range-separator="至"
+                            :disabled="selectStartEndTime"
+                            value-format="YYYY-MM-DD HH:mm:ss"
+                            start-placeholder="请选择开始日期"
+                            end-placeholder="请选择结束日期"
+                            style="margin: 3px 10px 0 10px"
+                        ></el-date-picker>
 
-                <el-date-picker
-                    v-model="startTime"
-                    type="date"
-                    placeholder="选择开始日期"
-                    :picker-options="startTimePickerOptions"
-                    style="margin-left: 10px"
-                    :disabled="!selectStartEndTime"
-                ></el-date-picker>
+                        <el-button
+                            style="height: 32px; margin-top: 3px"
+                            type="primary"
+                            @click="getTableData"
+                            >更新</el-button
+                        >
+                    </div>
 
-                <el-date-picker
-                    v-model="endTime"
-                    type="date"
-                    placeholder="选择结束日期"
-                    :picker-options="endTimePickerOptions"
-                    style="margin-left: 10px"
-                    :disabled="!selectStartEndTime"
-                ></el-date-picker>
-
-                <el-button
-                    type="primary"
-                    @click="reflashStartEndTimeData"
-                    style="height: 32px; margin-left: 10px"
-                    >更新</el-button
-                >
-
-                <!--线图与列表的切换-->
-                <el-radio-group
-                    v-model="radio1"
-                    style="padding-left: 40"
-                    @change="showDataRadioButtonChange"
-                >
-                    <el-radio-button label="1">线图</el-radio-button>
-                    <el-radio-button label="2">数据记录</el-radio-button>
-                </el-radio-group>
-
-                <el-button
-                    v-if="radio1 == '2'"
-                    type="success"
-                    @click="outPutDataSelected"
-                    style="height: 32px"
-                    >导出选中</el-button
-                >
-            </div>
-            <div v-if="radio1 == 1">
-                <div v-for="info in rowData.line_datas">
-                    <!--             图标个数在html中由lastselectedNode限制 -->
+                    <!--线图与列表的切换-->
+                    <el-radio-group
+                        v-model="selectChartsTable"
+                        style="padding-left: 40"
+                        @change="handleSelectChange"
+                    >
+                        <el-radio-button value="1">线图</el-radio-button>
+                        <el-radio-button value="2">数据记录</el-radio-button>
+                    </el-radio-group>
+                </div>
+                <!-- 线表 -->
+                <div v-show="selectChartsTable == '1'">
                     <div
-                        :id="info.canvas_id"
+                        v-for="i in props.rowData.node_data.line_datas"
+                        :key="i.node_line"
+                        :id="`canvas_${i.node_line}`"
                         style="
-                            border: 1px solid;
+                            border: 1px solid #000000;
+                            margin: 10px;
+                            border-radius: 8px;
+                            width: 98%;
+                            height: 400px;
+                        "
+                    ></div>
+                    <div
+                        id="canvas_vol"
+                        style="
+                            border: 1px solid #000000;
+                            margin: 10px;
+                            border-radius: 8px;
+                            width: 98%;
+                            height: 400px;
+                        "
+                    ></div>
+                    <div
+                        id="canvas_csq"
+                        style="
+                            border: 1px solid #000000;
                             margin: 10px;
                             border-radius: 8px;
                             width: 98%;
@@ -153,28 +165,31 @@
                         "
                     ></div>
                 </div>
-
-                <div
-                    id="canvas_vol"
-                    style="
-                        border: 1px solid;
-                        margin: 10px;
-                        border-radius: 8px;
-                        width: 98%;
-                        height: 400px;
-                    "
-                ></div>
-
-                <div
-                    id="canvas_csq"
-                    style="
-                        border: 1px solid;
-                        margin: 10px;
-                        border-radius: 8px;
-                        width: 98%;
-                        height: 400px;
-                    "
-                ></div>
+                <!-- 表格 -->
+                <div v-show="selectChartsTable == '2'" style="height: 670px">
+                    <ps-search-table
+                        rowKey="node_data_id"
+                        :border="true"
+                        :hasSelection="true"
+                        :hasIndex="true"
+                        :hasSearch="false"
+                        :fieldLists="fieldLists"
+                        :tableData="tableData"
+                        @getSelectedData="getSelectedData"
+                    >
+                        <template #tableHeader>
+                            <el-button
+                                type="primary"
+                                @click="outputSelectedData"
+                                style="height: 32px"
+                                >导出选中</el-button
+                            >
+                            <el-button type="success" @click="outputAllData" style="height: 32px"
+                                >导出全部</el-button
+                            >
+                        </template>
+                    </ps-search-table>
+                </div>
             </div>
         </div>
     </ps-dialog>
@@ -182,11 +197,19 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import { formatDate, UNIT_TABLE, ExtUnitCalculate, ExtGraphDrawing } from '@/utils'
+import {
+    formatDate,
+    UNIT_TABLE,
+    gdMapXYConvertorEx,
+    exportExcel,
+    translateUnit,
+    translateUnitDesp
+} from '@/utils'
 import gdMap from '@/utils/gaode-map'
 import { getLbsList } from '@/api/realTimeData'
 import useUserStore from '@/store/modules/user'
 import * as echarts from 'echarts'
+import { dataOption, volOption, csqOption, datasOption } from './realTimeData-echarts'
 
 const props = defineProps({
     // 打开弹窗
@@ -221,20 +244,7 @@ const userStore = useUserStore()
 const dialogInnerStyle: any = reactive({
     height: '80vh'
 }) // 弹窗高度
-const loading: any = ref(false) // 加载样式
-
-const nodeData = (data: any) => {
-    if (!data) return
-    const tags: any = []
-    for (let i of data.line_datas) {
-        for (let j of UNIT_TABLE) {
-            if (i.unit == j.type) {
-                tags.push({ name: `${j.desc} ${i.value} ${j.name}`, type: i.node_line })
-            }
-        }
-    }
-    return tags
-}
+const mapLoading: any = ref(false) // 地图加载样式
 
 const tagTypes: any = ['#409eff', '#67c23a', '#e6a23c']
 // tag渲染
@@ -242,49 +252,55 @@ const tagType = (index: any) => {
     return tagTypes[index]
 }
 
-const buttonInfos: any = ref([])
+const dataEchartsInfo: any = ref([]) // echarts 图表信息
 const open = () => {
-    loading.value = true
-    console.log(props.rowData)
-    for (let x of props.rowData.node_data.line_datas) {
-        console.log(x)
-        const lastValue = UNIT_TABLE.find((i: any) => i.type === x.unit)
-        buttonInfos.value.push({
+    console.log('rowData', props.rowData)
+    // echarts 图表信息 dataEchartsInfo
+    for (let item of props.rowData.node_data.line_datas) {
+        const lastValue = UNIT_TABLE.find((i: any) => i.type === item.unit)
+        dataEchartsInfo.value.push({
             max: 100,
             min: 0,
-            last_value: x.line_param.last_value,
+            last_value: item.line_param.last_value,
             line_desc: lastValue?.desc,
             unit_name: lastValue?.name
         })
     }
-    console.log(buttonInfos.value)
-
-    let last_date = new Date(props.rowData.node_data.date)
-    let ms = last_date.getTime()
-    ms -= 24 * 60 * 60 * 1000
-    let startTime = new Date(ms)
+    setTableColumn()
+    initCharts()
+    initVolChartsData()
+    initCsqChartsData()
+    initDataChartData()
+    // 获取高德地图所需要的gps集合
+    // 起始时间: 结束时间的前一天
+    let start_time = formatDate(props.rowData.node_data.date, 'YYYY-MM-DD HH:mm:ss', 1, 'day')
+    // 结束时间
+    let end_time = formatDate(props.rowData.node_data.date, 'YYYY-MM-DD HH:mm:ss')
+    // 时间日期选择器默认时间
+    startEndTime.value = [start_time, end_time]
     const params = {
         access_token: userStore.token,
         node_id: props.rowData.node_id,
-        start_time: formatDate(startTime, 'YYYY-MM-DD HH:mm:ss'),
-        end_time: formatDate(last_date, 'YYYY-MM-DD HH:mm:ss'),
+        start_time,
+        end_time,
         count: -1
     }
+    mapLoading.value = true
     getLbsList(params)
         .then((res: any) => {
+            // 加载地图
             if (res.result == '1') loadMap(res.lbs_list)
-            initCharts()
-            reflashStartEndTimeData()
-            setupDataToEcharts()
         })
         .finally(() => {
-            loading.value = false
+            mapLoading.value = false
         })
+    // 加载图表
+    getTableData()
 }
 
 // #region ********** start 处理高德地图 **********
 // 高德地图
-let map: any = ref(null)
+const map: any = ref(null) // 高德地图实例
 const loadMap = (lbsList: any) => {
     gdMap.then((AMap) => {
         map.value = new AMap.Map('map_container', {
@@ -294,72 +310,70 @@ const loadMap = (lbsList: any) => {
             center: [116.397428, 39.90923] // 初始化地图中心点位置
         })
 
-        let scale = new AMap.Scale({
-                visible: true
-            }),
-            toolBar = new AMap.ToolBar({
-                visible: true,
-                position: {
-                    top: '110px',
-                    right: '40px'
-                }
-            }),
-            controlBar = new AMap.ControlBar({
-                visible: true,
-                position: {
-                    top: '10px',
-                    right: '10px'
-                }
-            })
+        // 比例尺
+        const scale = new AMap.Scale({
+            visible: true
+        })
+
+        // 放大缩小
+        const toolBar = new AMap.ToolBar({
+            visible: true,
+            position: {
+                top: '110px',
+                right: '40px'
+            }
+        })
+
+        // 指南针
+        const controlBar = new AMap.ControlBar({
+            visible: true,
+            position: {
+                top: '10px',
+                right: '10px'
+            }
+        })
         map.value.addControl(scale)
         map.value.addControl(toolBar)
         map.value.addControl(controlBar)
 
-        console.log(map.value)
-
-        if (null == map.value) {
-            console.log('new gdMap failed!')
+        // 没有就不画点
+        if (map.value == null || lbsList == null || !lbsList.length) {
             return
         }
 
-        if (null == lbsList) {
-            console.log('lbsList = null')
-            return
-        }
+        // 坐标转换
+        gdMapXYConvertorEx(AMap, lbsList, (lists: any, noRepLngLatArrays: any) => {
+            function sortFinal(date: any) {
+                return function (a: any, b: any) {
+                    let f: any = new Date(a[date])
+                    let s: any = new Date(b[date])
+                    return f - s
+                }
+            }
 
-        if (lbsList.length < 1) {
-            console.log('lbsList = 0')
-            return
-        }
-        gdMapXYConvertorEx(lbsList, function (list: any, lngLatArrays: any) {
-            console.log('------list', list)
-            console.log('------lngLatArrays', lngLatArrays)
+            let list = lists.sort(sortFinal('date'))
 
-            let maxLon = lngLatArrays[0][0]
-            let minLon = lngLatArrays[0][0]
-            let maxLat = lngLatArrays[0][1]
-            let minLat = lngLatArrays[0][1]
+            // 找出maxLat和lbs.lat两个中的最大值，然后把它赋给maxLat
+            let maxLon = noRepLngLatArrays[0][0]
+            let minLon = noRepLngLatArrays[0][0]
+            let maxLat = noRepLngLatArrays[0][1]
+            let minLat = noRepLngLatArrays[0][1]
 
-            let marker = null
+            for (let i = 0; i < noRepLngLatArrays.length; i++) {
+                maxLon = Math.max(maxLon, noRepLngLatArrays[i][0])
+                minLon = Math.min(minLon, noRepLngLatArrays[i][0])
+                maxLat = Math.max(maxLat, noRepLngLatArrays[i][1])
+                minLat = Math.min(minLat, noRepLngLatArrays[i][1])
+            }
+            // 绘制地图
             let markerList = []
             let pathList = []
 
-            for (let i in lngLatArrays) {
-                console.log(i)
-                console.log(lngLatArrays[i])
-                maxLon = Math.max(maxLon, lngLatArrays[i][0])
-                minLon = Math.min(minLon, lngLatArrays[i][0])
-                maxLat = Math.max(maxLat, lngLatArrays[i][1]) //找出maxLat和lbs.lat两个中的最大值，然后把它赋给maxLat
-                minLat = Math.min(minLat, lngLatArrays[i][1])
-            }
-
-            let index = 0
-
-            for (let i in list) {
-                console.log('1312312312312', list[i])
-                if (index !== 0) {
+            let marker = null
+            for (let i = 0; i < list.length; i++) {
+                if (i !== list.length - 1) {
                     marker = new AMap.Marker({
-                        position: list[i].lngLatArr,
+                        position: list[i],
                         title: list[i].date
                     })
                 } else {
@@ -374,28 +388,48 @@ const loadMap = (lbsList: any) => {
                         imageOffset: new AMap.Pixel(0, 0)
                     })
                     marker = new AMap.Marker({
-                        position: list[i].lngLatArr,
+                        position: list[i],
                         icon: endIcon,
                         title: list[i].date,
                         offset: new AMap.Pixel(-20, -20)
                     })
                 }
-                index++
                 markerList.push(marker)
-                pathList.push(new AMap.LngLat(list[i].lngLatArr[0], list[i].lngLatArr[1]))
+                pathList.push(new AMap.LngLat(list[i].lng, list[i].lat))
             }
 
-            console.log(markerList)
             map.value.add(markerList)
-            pathList.reverse()
-            let polyline = new AMap.Polyline({
-                path: pathList,
-                strokeWeight: 10, //线条宽度
-                lineJoin: 'round', //折线拐点连接处样式
-                showDir: true,
-                strokeColor: '#3366bb' // 线颜色
-            })
-            map.value.add(polyline)
+            if (pathList.length > 1) {
+                let finalPath = [
+                    new AMap.LngLat(list[list.length - 1].lng, list[list.length - 1].lat)
+                ]
+                for (let i = list.length - 1; i >= 0; i--) {
+                    if (
+                        list[list.length - 1].lng !== list[i].lng ||
+                        list[list.length - 1].lat !== list[i].lat
+                    ) {
+                        finalPath.unshift(new AMap.LngLat(list[i].lng, list[i].lat))
+                        break
+                    }
+                }
+                let polyline = new AMap.Polyline({
+                    path: pathList,
+                    lineJoin: 'round', //折线拐点连接处样式
+                    showDir: true,
+                    strokeColor: '#3366bb', // 线颜色
+                    strokeWeight: 10 // 线宽
+                })
+                let polyline1 = new AMap.Polyline({
+                    path: finalPath, // 设置最后路径的样式
+                    lineJoin: 'round', //折线拐点连接处样式
+                    showDir: true,
+                    dirColor: 'yellow',
+                    strokeColor: 'green', // 线颜色
+                    strokeWeight: 10 // 线宽
+                })
+                map.value.add(polyline)
+                map.value.add(polyline1)
+            }
 
             const ptSW = new AMap.LngLat(Number(minLon) - 0.001, Number(minLat) - 0.001)
             const ptNE = new AMap.LngLat(Number(maxLon) + 0.001, Number(maxLat) + 0.001)
@@ -404,1216 +438,269 @@ const loadMap = (lbsList: any) => {
         })
     })
 }
-
-//腾讯XY坐标转换的扩展函数，可以实现任意个数的坐标数组进行转换
-const gdMapXYConvertorEx = (lbsLists: any, xyHandler: any) => {
-    if (null == lbsLists) {
-        return
-    }
-    if (0 == lbsLists.length) {
-        return
-    }
-
-    let lngLatStrings = []
-    let lngLatArrays = []
-    // 给原来的数组的对象中加两项
-    let lbsList = []
-    for (let item of lbsLists) {
-        lngLatStrings.push(`${item.lon},${item.lat}`) // 把字符串单独放一个数组
-        lngLatArrays.push([item.lon, item.lat]) // 把数组单独放一个数组
-        lbsList.push({
-            ...item,
-            lngLatStr: `${item.lon},${item.lat}`,
-            lngLatArr: [item.lon, item.lat]
-        })
-    }
-
-    // 过滤字符串数组中相同的点
-
-    let a3 = Array.from(new Set(lngLatStrings))
-    console.log(a3)
-
-    // 找出最后一次出现的时间节点
-
-    console.log('lbsList------', lbsList)
-    let finals: any = {}
-
-    a3.forEach((i) => {
-        let arr: any = []
-        lbsList.forEach((j) => {
-            if (i === j.lngLatStr) {
-                arr.push(j)
-            }
-        })
-
-        function sortFinal(date: any) {
-            return function (a: any, b: any) {
-                let f: any = new Date(a[date])
-                let s: any = new Date(b[date])
-                return f - s
-            }
-        }
-
-        let arrs = arr.sort(sortFinal('date'))
-
-        finals[`${i}`] = arrs[arrs.length - 1]
-    })
-    console.log('first-----------', finals)
-    xyHandler(finals, lngLatArrays)
-}
 // #endregion ********** end 处理高德地图 **********
 
-// #region ********** start 处理echarts图表**********
-const buttonCharts = ref(0)
-const gudgeChart = (index: any) => {
-    let optionGudge = {
-        series: [
-            {
-                min: buttonInfos.value[index]['min'],
-                max: buttonInfos.value[index]['max'],
-                type: 'gauge',
-                axisLine: {
-                    lineStyle: {
-                        //仪表线条设置
-                        width: 20,
-                        color: [
-                            //仪表线条颜色
-                            [0.3, '#67e0e3'],
-                            [0.7, '#37a2da'],
-                            [1, '#fd666d']
-                        ]
-                    }
-                },
-                pointer: {
-                    //指针设置
-                    itemStyle: {
-                        color: 'inherit'
-                    }
-                },
-                axisTick: {
-                    //仪表盘刻度设置
-                    distance: -30, //仪表盘刻度+为内，-为外
-                    length: 8,
-                    lineStyle: {
-                        color: '#fff',
-                        width: 2
-                    }
-                },
-                splitLine: {
-                    //仪表盘数字设置
-                    distance: -30,
-                    length: 30,
-                    lineStyle: {
-                        color: '#fff',
-                        width: 4
-                    }
-                },
-                axisLabel: {
-                    //仪表盘数字标签
-                    color: 'inherit',
-                    distance: 40,
-                    fontSize: autoFont(15)
-                },
-                detail: {
-                    valueAnimation: true,
-                    formatter: '{value}' + buttonInfos.value[index].unit_name,
-                    color: 'inherit',
-                    fontSize: autoFont(25)
-                },
-                data: [
-                    {
-                        value: buttonInfos.value[index]['last_value']
-                    }
-                ]
-            }
-        ]
-    }
-    chartsDom.value.setOption(optionGudge)
-}
+// #region ********** start 处理echarts图表 **********
+const curDataEcharts = ref(0) // 当前echarts下标
+const dataEchartsDom: any = ref(null) // echarts dom
 
-const autoFont = (res: any) => {
-    const clientWidth =
-        window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth
-    if (!clientWidth) return
-    let fontSize = clientWidth / 1920
-    return res * fontSize
-}
-
-const chartsDom: any = ref(null)
+// 初始化echarts图表
 const initCharts = () => {
-    const gudgeDom = document.getElementById('gagueChart')
-    chartsDom.value = echarts.init(gudgeDom)
+    dataEchartsDom.value = echarts.init(document.getElementById('dataChart'))
     window.addEventListener('resize', () => {
-        chartsDom.value.resize()
+        dataEchartsDom.value && dataEchartsDom.value.resize()
     })
-    gudgeChart(0)
+    drawDataCharts(0)
+}
+
+// 处理echarts图表
+const drawDataCharts = (index: any) => {
+    dataEchartsDom.value.setOption(dataOption(index, dataEchartsInfo))
 }
 // #endregion ********** end 处理echarts图表 **********
 
-//
-const selectStartEndTime: any = ref(false)
-const startTime: any = ref(null)
-const endTime: any = ref(null)
-const startDate: any = ref(null)
-const endDate: any = ref(null)
-const radio1: any = ref('1')
-const startTimePickerOptions = {
-    shortcuts: [
-        {
-            text: '昨天',
-            onClick(picker: any) {
-                const date = new Date()
-                date.setTime(date.getTime() - 3600 * 1000 * 24)
-                picker.$emit('pick', date)
-            }
-        },
-        {
-            text: '三天前',
-            onClick(picker: any) {
-                const date = new Date()
-                date.setTime(date.getTime() - 3600 * 1000 * 24 * 3)
-                picker.$emit('pick', date)
-            }
-        },
-        {
-            text: '七天前',
-            onClick(picker: any) {
-                const date = new Date()
-                date.setTime(date.getTime() - 3600 * 1000 * 24 * 7)
-                picker.$emit('pick', date)
-            }
+// #region ********** start 处理控件 **********
+const selectStartEndTime: any = ref(true) // 时间段
+const startEndTime: any = ref([]) // 查询起止时间
+const shortcuts = [
+    {
+        text: '昨天',
+        value: () => {
+            const end = new Date()
+            const start = new Date()
+            start.setDate(start.getDate() - 1)
+            return [start, end]
         }
-    ]
-}
-const endTimePickerOptions = {
-    shortcuts: [
-        {
-            text: '今天',
-            onClick(picker: any) {
-                const date = new Date()
-                picker.$emit('pick', date)
-            }
+    },
+    {
+        text: '三天前',
+        value: () => {
+            const end = new Date()
+            const start = new Date()
+            start.setDate(start.getDate() - 3)
+            return [start, end]
         }
-    ]
-}
-
-const showDataRadioButtonChange = () => {
-    if (radio1.value == '1' || radio1.value == '2') {
-        reflashStartEndTimeData()
-    }
-}
-
-const yibiaoDatas: any = ref([])
-const dataForNodeDatas: any = ref([])
-const webSocket: any = ref(null)
-const reflashStartEndTimeData = () => {
-    yibiaoDatas.value = []
-    console.log('执行到了reflashStartEndTimeData')
-    //当使用默认最新24小时的时候
-    if (!selectStartEndTime.value) {
-        //求出 js Date 时间
-        //endTime = dateUpToHour(new Date());
-        if (props.rowData.node_data.date) {
-            endTime.value = dateUpToHour(
-                formatDate(props.rowData.node_data.date, 'YYYY-MM-DD HH:mm:ss')
-            )
-            endDate.value = new Date(props.rowData.node_data.date)
-            let ms_ = endDate.value.getTime()
-            let ms = endTime.value.getTime()
-            ms -= 24 * 60 * 60 * 1000
-            ms_ -= 24 * 60 * 60 * 1000
-            startDate.value = new Date(ms_)
-            startTime.value = new Date(ms)
-        } else {
-            return //当使用默认时间,但是又没有默认时间时,就返回
+    },
+    {
+        text: '七天前',
+        value: () => {
+            const end = new Date()
+            const start = new Date()
+            start.setDate(start.getDate() - 7)
+            return [start, end]
         }
     }
+]
 
-    //对开始时间和结束时间进行比较，开始时间早于结束时间时则弹窗并终止数据请求
-    if (startTime.value.getTime() > endTime.value.getTime()) {
-        // date.getTime()
-        alert('开始时间不能晚于结束时间！请重新选择日期')
-        return 0
+// 当前选择的是线表还是表格
+const selectChartsTable = ref('1')
+
+const handleSelectChange = () => {
+    // getTableData()
+}
+
+// #endregion ********** end 处理控件 **********
+
+// #region ********** start 处理表格数据 **********
+// 获取表格数据
+const ws: any = ref(null) // websocket实例
+const tableData: any = ref([]) // 表格数据
+const changeLineDatas: any = ref([]) // 表格数据
+const fieldLists: any = ref([]) // 当前表格column
+const beforeTable = reactive([
+    // 表格动态列前column
+    {
+        label: '时间',
+        prop: 'date',
+        minWidth: 160
+    },
+    {
+        label: '间隔',
+        prop: 'gap',
+        minWidth: 80
     }
+])
 
-    //2022.8.9----reflashStartEndTimeData()使用websocket-----
-    if ('WebSocket' in window) {
-        console.log('您的浏览器支持websocket')
-        const url = `wss://app.parsen.com.cn/ParsenHttpApiV030/com/finder/GetNodeDatasEX`
-        const data = {
+const afterTable = reactive([
+    // 表格动态列后column
+    {
+        label: '信号',
+        prop: 'csq',
+        minWidth: 80
+    },
+    {
+        label: '电池',
+        prop: 'groupU',
+        minWidth: 100
+    }
+])
+
+const columnTableData: any = ref({}) // 动态列
+// 添加column
+const setTableColumn = () => {
+    const column: any = reactive([])
+    for (let i of props.rowData.node_data.line_datas) {
+        for (let j of UNIT_TABLE) {
+            if (i.unit == j.type) {
+                column.push({ label: j.desc, prop: i.node_line })
+                columnTableData.value[i.node_line] = `${i.value} ${j.name}`
+            }
+        }
+    }
+    fieldLists.value = [...beforeTable, ...column, ...afterTable]
+}
+
+// 获取表格数据
+const getTableData = () => {
+    if (window.WebSocket) {
+        // 请求表格数据
+        const url = 'wss://app.parsen.com.cn/ParsenHttpApiV030/com/finder/GetNodeDatasEX'
+        const params = {
             access_token: userStore.token,
             node_id: props.rowData.node_id,
             count: 200, //每次取出数据的数据量
-            start_time: formatDate(startDate.value, 'YYYY-MM-DD HH:mm:ss'),
-            end_time: formatDate(endDate.value, 'YYYY-MM-DD HH:mm:ss')
+            start_time: startEndTime.value[0],
+            end_time: startEndTime.value[1]
         }
-        if (null != webSocket.value) {
-            webSocket.value.close()
-            webSocket.value = null
+        if (ws.value) {
+            ws.value.close()
+            ws.value = null
         }
-
-        webSocket.value = new WebSocket(url) //创建websocket的连接
-
-        if (null == webSocket.value) {
-            console.log('创建连接失败')
-            return
-        }
-
-        //建立连接后发送请求
-        webSocket.value.onopen = function () {
+        // 创建websocket的连接
+        ws.value = new WebSocket(url)
+        ws.value.onopen = () => {
             console.log('创建连接成功，发送数据')
-            console.log(JSON.stringify(data))
-            webSocket.value.send(JSON.stringify(data))
+            ws.value.send(JSON.stringify(params))
         }
-
-        webSocket.value.onmessage = function (event: any) {
-            console.log('get datas servlet ok')
-            let dataS = null
+        tableData.value = []
+        changeLineDatas.value = []
+        // 返回数据
+        ws.value.onmessage = (event: any) => {
+            let data: any = null
             try {
-                dataS = JSON.parse(event.data)
+                data = JSON.parse(event.data)
             } catch (e) {
-                console.log('websocket onmessage not json string')
-                console.log(event.data)
-                console.log(e)
+                console.error('websocket onmessage not json string')
+                console.error(event.data)
+                console.error(e)
                 return
             }
-            dataForNodeDatas.value = dataS.node_datas
-
-            /*显示处理*/
-            let concelLine = []
-            let lines = props.rowData.node_data.line_datas
-            for (let x of lines) {
-                if (x.line_param.show == 1) continue
-                let nowLine = x.line_param.line
-                concelLine.push(nowLine)
+            // 处理数据
+            let line = []
+            let i: any
+            for (i of props.rowData.node_data.line_datas) {
+                if (i.line_param.show == '1') continue
+                let nowLine = i.line_param.line
+                line.push(nowLine)
             }
-
-            /*----------------------------------------*/
-
-            if (dataS != null) {
-                yibiaoDatas.value.push(...dataS.node_datas)
-                // if(concelLine.length>0){
-                for (let x of yibiaoDatas.value) {
-                    let line_datas: any = []
+            if (data) {
+                tableData.value.push(...data.node_datas)
+                for (let x of tableData.value) {
+                    let lineData = []
                     let lineCount: any = []
                     let i: any
                     for (i in x.line_datas) {
-                        if (concelLine.includes(x.line_datas[i].node_line)) {
+                        if (line.includes(x.line_datas[i].node_line)) {
                             continue
                         } else if (lineCount.includes(x.line_datas[i].node_line)) {
-                            let index = line_datas.findIndex(
-                                (item: any) => item.node_line == i.node_line
-                            )
-                            line_datas.splice(index, 1)
+                            let index = lineData.findIndex((item) => item.node_line == i.node_line)
+                            lineData.splice(index, 1)
                         }
-                        line_datas.push(x.line_datas[i])
+                        lineData.push(x.line_datas[i])
                         lineCount.push(x.line_datas[i].node_line)
                     }
-                    x.line_datas = line_datas
-                    // }
+                    x.line_datas = lineData
                 }
-            }
-
-            //websocket可能会传多次数据，为防止数据覆盖，直接使用that.yibiaoDatas
-            yibiaoDatasUnitTransfer(yibiaoDatas.value)
-
-            console.log('transfer datas ok')
-
-            //数据时间排序
-            function compare(proprty: any, bol: any) {
-                return function (a: any, b: any) {
-                    let value1 = Date.parse(a[proprty])
-                    let value2 = Date.parse(b[proprty])
-                    if (bol) {
-                        //升序
-                        return value1 - value2
-                    } else {
-                        //降序
-                        return value2 - value1
+                // 排序
+                function sortFinal(date: any) {
+                    return function (a: any, b: any) {
+                        const f: any = new Date(a[date])
+                        const s: any = new Date(b[date])
+                        return s - f
                     }
                 }
-            }
-
-            yibiaoDatas.value.sort(compare('date', false))
-
-            //计算间隔时间
-            let i: any
-            for (i in yibiaoDatas.value) {
-                if (i == yibiaoDatas.value.length - 1) {
-                    yibiaoDatas.value[i]['gap'] = 0
-                } else {
-                    let x = i - 1 + 2
-                    let timeBefore: any = new Date(yibiaoDatas.value[x].date)
-                    let timeAfter: any = new Date(yibiaoDatas.value[i].date)
-                    yibiaoDatas.value[i]['gap'] = ((timeAfter - timeBefore) / 60 / 1000).toFixed(1)
-                }
-            }
-
-            setupDataToEcharts()
-
-            let drawInfo = (ExtGraphDrawing as any)[props.rowData.node_id]
-            if (drawInfo) {
-                drawInfo.drawFunc(
-                    drawInfo.drawData,
-                    props.rowData.dataInfos[0].displayValue,
-                    props.rowData.dataInfos[1].displayValue,
-                    props.rowData.dataInfos[2].displayValue,
-                    drawInfo.rou,
-                    drawInfo.g
-                )
-            }
-        }
-    } else {
-        console.log('您的浏览器不支持websocket')
-    }
-}
-
-const dataCount: any = ref(0)
-const linCount: any = ref(0)
-const tempLine: any = ref([])
-const changeLineDatas: any = ref([])
-const lineDatas: any = ref({})
-const yibiaoDatasUnitTransfer = (datas: any) => {
-    for (let data of datas) {
-        if (null == data.line_datas) {
-            dataCount.value++
-            continue
-        }
-        for (let i of data.line_datas) {
-            if (tempLine.value.includes(i.node_line)) {
-                continue
-            }
-            tempLine.value.push(i.node_line)
-            linCount.value++
-        }
-        dataCount.value++
-    }
-    //==========================	新建数组待存放数据值和时间
-    for (let i = 0; i < linCount.value; i++) {
-        lineDatas.value['lineNode' + tempLine.value[i]] = []
-        lineDatas.value['lineTime' + tempLine.value[i]] = []
-    }
-
-    //==========================	压入数据
-    for (let data of datas) {
-        if (null == data.line_datas) {
-            continue
-        }
-        for (let i of data.line_datas) {
-            let lineNode = 'lineNode' + i.node_line
-            let lineNodeTime = 'lineTime' + i.node_line
-            lineDatas.value[lineNode].push(transferToUnit(i.value, i.unit, i.unit))
-            lineDatas.value[lineNodeTime].push(data.date)
-            //console.log(yibiaoDatas.value[dataCount.value][lineNodeTime]);
-        }
-    }
-
-    //==========================	计算最大数据长度
-    let maxLength = 0
-    for (let length in lineDatas.value) {
-        if (lineDatas.value[length].length > maxLength) {
-            maxLength = lineDatas.value[length].length
-        }
-    }
-
-    //==========================	新建存放转换数据的数组，为防止刷新累加，先清空
-    changeLineDatas.value = []
-    for (let a = 0; a < maxLength; a++) {
-        changeLineDatas.value.push([])
-    }
-
-    //==========================	转换数据
-    for (let i in lineDatas.value) {
-        for (let a = 0; a < maxLength; a++) {
-            if (a >= lineDatas.value[i].length) {
-                changeLineDatas.value[a].push('-')
-                continue
-            }
-            changeLineDatas.value[a].push(lineDatas.value[i][a])
-        }
-    }
-
-    //                yibiaoDatas.value.push(changeLineDatas.value);
-    //				dataCount.value++;
-
-    for (let data of datas) {
-        if (data.vol > 200) {
-            data.vol /= 1000
-        }
-        if (null == data.line_datas) {
-            continue
-        }
-        for (let i of data.line_datas) {
-            let nodeLine = i.node_line
-            data['D' + nodeLine] = transferToUnit(i.value, i.unit, i.unit)
-            data['D' + nodeLine + 'U'] = i.unit
-        }
-    }
-}
-
-const colors: any = ref([])
-const echartsInstanceVol: any = ref(null)
-const echartsInstance: any = ref(null)
-const echartsInstanceCsq: any = ref(null)
-const echartKpaInstance: any = ref(null)
-const echartVInstance: any = ref(null)
-const setupDataToEcharts = () => {
-    const infos = props.rowData.dataInfos
-
-    gudgeChart(0)
-    buttonCharts.value = 0
-
-    let lineCount: any = []
-    let data: any
-    for (data of yibiaoDatas.value) {
-        if (null == data.line_datas) {
-            continue
-        }
-        let line_datas = []
-        lineCount = []
-        let i: any
-        for (i of data.line_datas) {
-            if (lineCount.includes(i.node_line)) {
-                let index = line_datas.findIndex((item) => item.node_line == i.node_line)
-                line_datas.splice(index, 1)
-            }
-            lineCount.push(i.node_line)
-            line_datas.push(i)
-        }
-        data.line_datas = line_datas
-    }
-
-    let dnames = []
-    lineCount.forEach((value: any, key: any) => {
-        dnames[key] = 'D' + value
-    }),
-        //return回ps_consts_f.js中PsColor的数组，包含16进制的颜色
-        (colors.value = ['#409EFF', '#67C23A', '#E6A23C', '#F56C6C']) //['#409EFF','#67C23A','#E6A23C','#F56C6C'];
-
-    //设置好时间轴datazoom元素，画Chart时直接带入对应变量名
-    //单独滑动条
-    let dzSlider = {
-        // 这个dataZoom组件，默认控制x轴。
-        type: 'slider', // 这个 dataZoom 组件是 slider 型 dataZoom 组件
-        start: 0, // 左边在 10% 的位置。
-        end: 100, // 右边在 60% 的位置。
-        showDetail: false
-    }
-    //内置
-    let dzInside = {
-        // 这个dataZoom组件，也控制x轴。
-        type: 'inside', // 这个 dataZoom 组件是 inside 型 dataZoom 组件
-        start: 0, // 左边在 10% 的位置。
-        end: 100 // 右边在 60% 的位置。
-    }
-
-    const volDomInstance = document.getElementById('canvas_vol')
-    echartsInstanceVol.value = echarts.init(volDomInstance)
-    echartsInstanceVol.value.on('dataZoom', onDataZoom) //绑定事件
-    const volMax = 8
-    const volMin = 0
-    let volLabel = {
-        formatter: function (param: any) {
-            //formatter函数格式化显示时间数据
-            const dt = new Date(param.value)
-            const timeStr =
-                dt.getMonth() +
-                1 +
-                '-' +
-                dt.getDate() +
-                ' ' +
-                formatNumber(dt.getHours()) +
-                ':' +
-                formatNumber(dt.getMinutes())
-            return timeStr
-        }
-    }
-
-    const csqDomInstance = document.getElementById('canvas_csq')
-    echartsInstanceCsq.value = echarts.init(csqDomInstance)
-    echartsInstanceCsq.value.on('dataZoom', onDataZoom)
-    const csqMax = 33
-    const csqMin = -1
-    let csqLabel = {
-        formatter: function (param: any) {
-            //formatter函数格式化显示时间数据
-            const dt1 = new Date(param.value)
-            //const timeStr = dt.getMonth() + '月' + dt.getDay() + '日' + dt.getHours() + '时' + dt.getMinutes() + '分';
-            const timeStr1 =
-                dt1.getMonth() +
-                1 +
-                '-' +
-                dt1.getDate() +
-                ' ' +
-                formatNumber(dt1.getHours()) +
-                ':' +
-                formatNumber(dt1.getMinutes())
-            return timeStr1
-        }
-    }
-
-    //画出了供电电压表
-    let volOption = {
-        //Echart设置
-        title: {
-            text: yibiaoDatas.value[0].vol < 10 ? '供电电压' : '电池电量',
-            left: 'center'
-        },
-        tooltip: {
-            trigger: 'axis',
-
-            axisPointer: {
-                type: 'shadow', //['line','shadow','cross','none'][i],
-                animation: false,
-                axis: 'x',
-                //snap:false,
-                label: volLabel //时间
-            }
-            //formatter:'{a} {b} {c} {a0} {b0} {c0} {a1} {b1} {c1}',
-        },
-        xAxis: {
-            type: 'time',
-            max: endDate.value,
-            min: startDate.value
-        },
-        yAxis: {
-            type: 'value',
-            name: yibiaoDatas.value[0].vol < 10 ? 'V' : '%',
-            max: yibiaoDatas.value[0].vol < 10 ? volMax : 100, //'dataMax',
-            min: yibiaoDatas.value[0].vol < 10 ? volMin : 50 //'dataMin',
-        },
-        grid: {
-            bottom: 40,
-            containLabel: true
-        },
-        dataZoom: [
-            dzSlider,
-            dzInside
-            /* {filterMode: 'filter'}*/
-        ],
-        color: '#000000',
-        dataset: {
-            source: yibiaoDatas.value
-        },
-        series: [
-            {
-                name: yibiaoDatas.value[0].vol < 10 ? '电压' : '百分比',
-                type: 'line',
-                symbolSize: 8,
-                encode: {
-                    x: 'date',
-                    y: 'vol'
-                    //y:'displayValue',
-                }
-            }
-        ]
-    }
-
-    echartsInstanceVol.value.setOption(volOption)
-    chartsDom.value.push(echartsInstanceVol.value)
-
-    //信号强度图表设置
-    let csqOption = {
-        title: {
-            text: '信号强度',
-            left: 'center' //水平安放位置
-        },
-        tooltip: {
-            //提示框
-            trigger: 'axis', //触发类型:轴触发；axis是鼠标移动到柱状图显示全部数据，item是显示折线图全部数据
-
-            axisPointer: {
-                //坐标轴指示器
-                type: 'shadow', //默认为line,line直线，cross十字准星，shadow阴影
-                animation: false, //设置echart是否开启动画
-                axis: 'x',
-                label: csqLabel //文字描述
-            }
-        },
-        xAxis: {
-            type: 'time',
-            max: endDate.value,
-            min: startDate.value
-        },
-        yAxis: {
-            type: 'value',
-            name: '信号强度',
-            max: yibiaoDatas.value[0].vol_type == 0 ? csqMax : 100, //'dataMax',
-            min: yibiaoDatas.value[0].vol_type == 0 ? csqMin : 50 //'dataMin',
-        },
-        grid: {
-            bottom: 40, //距离底部容器的距离
-            containLabel: true //gird区域是否包含坐标轴的刻度标签
-        },
-        dataZoom: [
-            dzSlider,
-            dzInside
-            /* {filterMode: 'filter'}*/
-        ],
-        color: '#A511FE',
-        dataset: {
-            source: yibiaoDatas.value
-        },
-
-        series: [
-            {
-                name: '信号强度',
-                type: 'line',
-                symbolSize: 8,
-                encode: {
-                    x: 'date',
-                    y: 'csq'
-                    //y:'displayValue',
-                }
-            }
-        ]
-    }
-    echartsInstanceCsq.value.setOption(csqOption)
-    chartsDom.value.push(echartsInstanceCsq.value)
-    //循环读取data部署chart
-    let i: any
-    for (i in infos) {
-        //!!!!!!循环只依赖于lastselectedNode
-        const domInstance = document.getElementById(infos[i].canvas_id) //返回dom
-        //lastselectednode控制dom容器
-        if (!domInstance) {
-            continue
-        }
-
-        echartsInstance.value[i] = echarts.init(domInstance) //图表实例
-        if (!echartsInstance.value[i]) {
-            continue
-        }
-
-        echartsInstance.value[i].on('dataZoom', onDataZoom) //绑定事件
-
-        const yMax =
-            infos[i].setMax == '1'
-                ? infos[i].max
-                : function (value: any) {
-                      return Math.ceil((value.max - value.min) * 0.1 + value.max) //向上取整
-                  }
-        const yMin =
-            infos[i].setMin == '1'
-                ? infos[i].min
-                : function (value: any) {
-                      return Math.floor(value.min - (value.max - value.min) * 0.1) //向下取整
-                  }
-
-        let labelEx = {}
-
-        const lineNumber = i
-        const funcName = props.rowData.node_id + '_' + i
-
-        //特殊指定计算
-        if ((ExtUnitCalculate as any)[funcName]) {
-            //此处调用ext_unit_calc_f.js文件中的计算函数
-            //在detal_data_graph.jsp文件中引用ext_unit_calc_f.js
-            labelEx = {
-                formatter: function (param: any) {
-                    if (!param.seriesData[0]) {
-                        console.log('遇到 seriessData[0] 为  null')
-                        return ''
+                tableData.value = tableData.value.sort(sortFinal('date'))
+                tableData.value = tableData.value.map((item: any, index: any) => {
+                    const gap =
+                        index < tableData.value.length - 1
+                            ? (
+                                  (+new Date(tableData.value[index].date) -
+                                      +new Date(tableData.value[index + 1].date)) /
+                                  60 /
+                                  1000
+                              ).toFixed(1)
+                            : 0
+                    const lineDataObj: any = {}
+                    for (let i of item.line_datas) {
+                        lineDataObj[`D${i.node_line}`] = Number(i.value)
+                        lineDataObj[`D${i.node_line}U`] = i.unit
+                        lineDataObj[i.node_line] = `${i.value} ${translateUnit(i.unit)}`
                     }
-                    if (!param.seriesData[0].data) {
-                        console.log('遇到 data 为  null')
-                        return ''
+                    return {
+                        ...item,
+                        ...columnTableData.value,
+                        ...lineDataObj,
+                        date: formatDate(item.date, 'YYYY-MM-DD HH:mm:ss'),
+                        groupU: `${item.vol}${item.vol < 10 ? 'V' : '%'}`,
+                        group: item.vol,
+                        gap
                     }
-
-                    const value = param.seriesData[0].data[lineNumber]
-                    const dt = new Date(param.value)
-                    //const timeStr = dt.getMonth() + '月' + dt.getDay() + '日' + dt.getHours() + '时' + dt.getMinutes() + '分';
-                    const timeStr =
-                        dt.getMonth() +
-                        1 +
-                        '-' +
-                        dt.getDate() +
-                        ' ' +
-                        formatNumber(dt.getHours()) +
-                        ':' +
-                        formatNumber(dt.getMinutes())
-
-                    const displayValue = transferToUnit(
-                        value,
-                        props.rowData.dataInfos[lineNumber].displayUnit,
-                        '0'
-                    )
-                    let vol = (ExtUnitCalculate as any)[funcName](displayValue)
-
-                    return timeStr + '  ' + vol
-                }
-            }
-        } else {
-            labelEx = {
-                formatter: function (param: any) {
-                    const dt = new Date(param.value)
-                    //const timeStr = dt.getMonth() + '月' + dt.getDay() + '日' + dt.getHours() + '时' + dt.getMinutes() + '分';
-                    const timeStr =
-                        dt.getMonth() +
-                        1 +
-                        '-' +
-                        dt.getDate() +
-                        ' ' +
-                        formatNumber(dt.getHours()) +
-                        ':' +
-                        formatNumber(dt.getMinutes())
-                    return timeStr
-                }
-            }
-        }
-
-        //通用图表格式设定
-        let option = {
-            title: {
-                text: infos[i].line_desc, //！！！！！！lastselectednode控制表头
-                left: 'center'
-            },
-            tooltip: {
-                trigger: 'axis',
-
-                axisPointer: {
-                    type: 'shadow', //['line','shadow','cross','none'][i],
-                    animation: false,
-                    axis: 'x',
-                    label: labelEx
-                }
-            },
-            xAxis: {
-                type: 'time',
-                max: endDate.value,
-                min: startDate.value
-            },
-            yAxis: {
-                type: 'value',
-                name: '单位: ' + infos[i].unit_name, //!!!!!lastselectednode控制单位
-                max: yMax, //'dataMax',
-                min: yMin //'dataMin',
-            },
-            grid: {
-                bottom: 40,
-                containLabel: true
-            },
-            dataZoom: [dzSlider, dzInside],
-            color: colors[i % 4], //!!!!!!一共四个颜色，超过索引需要修改
-            dataset: {
-                source: changeLineDatas.value
-            },
-            series: [
-                {
-                    name: infos[i].unit_desc,
-                    type: 'line',
-                    symbolSize: 8,
-                    encode: {
-                        x: i * 2 + 1,
-                        y: i * 2
-                        //y:'displayValue',
+                })
+                console.log('tableData.value', tableData.value)
+                changeLineDatas.value = tableData.value.map((item: any) => {
+                    const arr = []
+                    for (let i of item.line_datas) {
+                        arr.push(Number(i.value), item.date)
                     }
-                }
-            ]
-        }
-        /*  echartsInstance.value[i].clear();*/
-        // let d1 = +new Date();
-        echartsInstance.value[i].setOption(option)
-        chartsDom.value.push(echartsInstance.value[i])
-        /* let d2 = +new Date();
-                     let dDifferent = d2 - d1;
-                     console.log("this is Vgraph time");
-                     console.log(dDifferent);*/
-    } //for(int i=0 ~ 4)结束
-
-    //======================================特殊图标绘制
-    const drawObj = (ExtGraphDrawing as any)[props.rowData.node_id + '']
-
-    if (drawObj) {
-        const domKpa = document.getElementById('instrum_kpa')
-        if (!domKpa) {
-            return
-        }
-
-        echartKpaInstance.value = echarts.init(domKpa)
-        if (!echartKpaInstance.value) {
-            return
-        }
-
-        const h = drawObj.maxKpaToMaxHeight(drawObj.maxKpa)
-        const deg = (drawObj.maxH * 270) / h
-        const endDeg = 225 - deg
-
-        const optionKpa = {
-            series: [
-                {
-                    type: 'gauge', //仪表盘类型
-                    min: drawObj.minKpa,
-                    max: drawObj.maxKpa,
-                    splitNumber: drawObj.splitKpa,
-                    radius: '80%',
-                    axisLine: {
-                        lineStyle: {
-                            color: [[1, drawObj.colorKpa]],
-                            width: 2
-                        }
-                    },
-                    splitLine: {
-                        distance: 0,
-                        length: 18,
-                        lineStyle: {
-                            color: drawObj.colorKpa
-                        }
-                    },
-                    axisTick: {
-                        distance: -32,
-                        length: 10,
-                        lineStyle: {
-                            color: drawObj.colorKpa
-                        }
-                    },
-                    axisLabel: {
-                        distance: -42,
-                        color: drawObj.colorKpa,
-                        fontSize: 18
-                    },
-                    anchor: {
-                        show: true,
-                        size: 20,
-                        itemStyle: {
-                            borderColor: '#000',
-                            borderWidth: 2
-                        }
-                    },
-                    pointer: {
-                        offsetCenter: [0, '5%'],
-                        //icon: 'path://M2090.36389,615.30999 L2090.36389,615.30999 C2091.48372,615.30999 2092.40383,616.194028 2092.44859,617.312956 L2096.90698,728.755929 C2097.05155,732.369577 2094.2393,735.416212 2090.62566,735.56078 C2090.53845,735.564269 2090.45117,735.566014 2090.36389,735.566014 L2090.36389,735.566014 C2086.74736,735.566014 2083.81557,732.63423 2083.81557,729.017692 C2083.81557,728.930412 2083.81732,728.84314 2083.82081,728.755929 L2088.2792,617.312956 C2088.32396,616.194028 2089.24407,615.30999 2090.36389,615.30999 Z',
-                        length: '80%',
-                        itemStyle: {
-                            color: '#000'
-                        }
-                    },
-                    detail: {
-                        valueAnimation: true,
-                        precision: 2,
-                        offsetCenter: [0, 90],
-                        fontSize: 18,
-                        formatter: drawObj.formatterKpa
-                    },
-                    title: {
-                        offsetCenter: [-50, 120],
-                        color: drawObj.colorKpa
-                    },
-                    data: [
-                        {
-                            value: props.rowData.D1,
-                            name: drawObj.titleKpa
-                        }
-                    ]
-                },
-                {
-                    type: 'gauge',
-                    min: drawObj.minH,
-                    max: drawObj.maxH,
-                    splitNumber: drawObj.splitH,
-                    radius: '70%',
-                    endAngle: endDeg,
-                    axisLine: {
-                        lineStyle: {
-                            color: [[1, drawObj.colorH]],
-                            width: 3
-                        }
-                    },
-                    splitLine: {
-                        distance: -3,
-                        length: 18,
-                        lineStyle: {
-                            color: drawObj.colorH
-                        }
-                    },
-                    axisTick: {
-                        distance: 0,
-                        length: 10,
-                        lineStyle: {
-                            color: drawObj.colorH
-                        }
-                    },
-                    axisLabel: {
-                        distance: 10,
-                        fontSize: 19,
-                        color: drawObj.colorH
-                    },
-                    pointer: {
-                        show: false
-                    },
-                    title: {
-                        show: true,
-                        offsetCenter: [20, 120],
-                        color: drawObj.colorH
-                    },
-                    anchor: {
-                        show: true,
-                        size: 14,
-                        itemStyle: {
-                            color: '#000'
-                        }
-                    },
-                    detail: {
-                        show: false
-                    },
-                    data: [{ value: '1', name: drawObj.titleH }]
-                }
-            ] //series 数组结束
-        } //画特殊图表
-
-        echartKpaInstance.value.setOption(optionKpa, true)
-
-        const domV = document.getElementById('instrum_volume')
-        if (!domV) {
-            return
-        }
-
-        echartVInstance.value = echarts.init(domV)
-        if (!echartVInstance.value) {
-            return
-        }
-
-        const volume = drawObj.kPaToVolume(props.rowData.D1)
-
-        const optionV = {
-            series: [
-                {
-                    type: 'gauge', //仪表盘类型
-                    min: drawObj.minV,
-                    max: drawObj.maxV,
-                    splitNumber: drawObj.splitV,
-                    radius: '80%',
-                    axisLine: {
-                        lineStyle: {
-                            color: [[1, drawObj.colorV]],
-                            width: 2
-                        }
-                    },
-                    splitLine: {
-                        distance: 0,
-                        length: 18,
-                        lineStyle: {
-                            color: drawObj.colorV
-                        }
-                    },
-                    axisTick: {
-                        distance: -32,
-                        length: 10,
-                        lineStyle: {
-                            color: drawObj.colorV
-                        }
-                    },
-                    axisLabel: {
-                        distance: -42,
-                        color: drawObj.colorV,
-                        fontSize: 18
-                    },
-                    anchor: {
-                        show: true,
-                        size: 20,
-                        itemStyle: {
-                            borderColor: '#000',
-                            borderWidth: 2
-                        }
-                    },
-                    pointer: {
-                        offsetCenter: [0, '5%'],
-                        length: '80%',
-                        itemStyle: {
-                            color: '#000'
-                        }
-                    },
-                    detail: {
-                        valueAnimation: true,
-                        precision: 2,
-                        offsetCenter: [0, 90],
-                        fontSize: 18,
-                        formatter: drawObj.formatterV
-                    },
-                    title: {
-                        offsetCenter: [-50, 120],
-                        color: drawObj.colorV
-                    },
-                    data: [
-                        {
-                            value: volume,
-                            name: drawObj.titleV
-                        }
-                    ]
-                },
-                {
-                    type: 'gauge',
-                    min: drawObj.minT,
-                    max: 30, //drawObj.maxT(),
-                    splitNumber: drawObj.splitT,
-                    radius: '70%',
-                    axisLine: {
-                        lineStyle: {
-                            color: [[1, drawObj.colorT]],
-                            width: 3
-                        }
-                    },
-                    splitLine: {
-                        distance: -3,
-                        length: 18,
-                        lineStyle: {
-                            color: drawObj.colorT
-                        }
-                    },
-                    axisTick: {
-                        distance: 0,
-                        length: 6,
-                        lineStyle: {
-                            color: drawObj.colorT
-                        }
-                    },
-                    axisLabel: {
-                        distance: 10,
-                        fontSize: 19,
-                        color: drawObj.colorT
-                    },
-                    pointer: {
-                        show: false
-                    },
-                    title: {
-                        show: true,
-                        offsetCenter: [20, 120],
-                        color: drawObj.colorT
-                    },
-                    anchor: {
-                        show: true,
-                        size: 14,
-                        itemStyle: {
-                            color: '#000'
-                        }
-                    },
-                    detail: {
-                        show: false
-                    },
-                    data: [{ value: '1', name: drawObj.titleT }]
-                }
-            ] //series 数组结束
-        }
-
-        echartVInstance.value.setOption(optionV, true)
-    }
-
-    //this.echartKpaInstance.on('dataZoom',onDataZoom);
-    window.addEventListener('resize', autoSize)
-}
-
-const multipleSelect: any = ref([])
-const outPutDataSelected = () => {
-    console.log('outPutDataSelected')
-    let selectData: any = []
-    let tempSelect: any = {}
-    let title = ''
-    //选择全部单位desc用于输出
-    for (let i of multipleSelect.value[0]['line_datas']) {
-        title += unitCodeToDesc(i['unit'])
-        title += ','
-    }
-    //后续循环顺序此三项在后面，所以置后
-    title += `时间,信号,电池\n`
-    for (let i of multipleSelect.value) {
-        tempSelect = {}
-        tempSelect['date'] = i['date'].substring(0, 16)
-        for (let x in i.line_datas) {
-            tempSelect[x] = i['line_datas'][x]['value']
-        }
-        tempSelect['Csq'] = i['csq']
-        tempSelect['vol'] = i['vol']
-        selectData.push(tempSelect)
-    }
-    for (let i = 0; i < selectData.length; i++) {
-        for (const key in selectData[i]) {
-            title += `${selectData[i][key] + '\t'},`
-        }
-        title += '\n'
-    }
-    // encodeURIComponent解决中文乱码
-    const uri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(title)
-    // 通过创建a标签实现
-    const link = document.createElement('a')
-    link.href = uri
-    // 对下载的文件命名
-    link.download = '导出数据表.csv'
-    link.click()
-}
-
-const autoSize = () => {
-    for (let x of chartsDom.value) {
-        x.resize()
-    }
-}
-
-//仪表的单位代码转换成单位描述,用于显示
-const unitCodeToDesc = (code: any) => {
-    for (let elem of UNIT_TABLE) {
-        if (elem.type == code) {
-            return elem.desc
-        }
-    }
-}
-
-const onDataZoom = (params: any) => {
-    console.log('onDataZoom triggered')
-    //console.log(params);
-    //console.log([params.batch[0].start,params.batch[0].end]);
-
-    //如果是二次触发,不再处理
-    if ('zhang' == params.customFlag) {
-        return
-    }
-
-    //=====================================如果是原始动作,进行处理
-    if (undefined == params.start) {
-        //inside 的 dataZoom 在动作
-        console.log('inside data zoom')
-
-        for (let ei of echartsInstance.value) {
-            if (!ei) {
-                continue
+                    return arr
+                })
+                console.log('changeLineDatas.value', changeLineDatas.value)
+                drawVolCsqCharts()
             }
-            ei.dispatchAction({
-                type: 'dataZoom',
-                customFlag: 'zhang',
-                // 开始位置的百分比，0 - 100
-                start: params.batch[0].start,
-                // 结束位置的百分比，0 - 100
-                end: params.batch[0].end
-            })
         }
+    }
+}
 
-        if (echartsInstanceVol.value) {
-            echartsInstanceVol.value.dispatchAction({
-                type: 'dataZoom',
-                customFlag: 'zhang',
-                // 开始位置的百分比，0 - 100
-                start: params.batch[0].start,
-                // 结束位置的百分比，0 - 100
-                end: params.batch[0].end
-            })
-        }
+// 选中的数据
+const selectedData = ref([])
+const getSelectedData = (params: any) => {
+    selectedData.value = params.selectedData.value
+}
 
-        if (echartsInstanceCsq.value) {
-            echartsInstanceCsq.value.dispatchAction({
-                type: 'dataZoom',
-                customFlag: 'zhang',
-                // 开始位置的百分比，0 - 100
-                start: params.batch[0].start,
-                // 结束位置的百分比，0 - 100
-                end: params.batch[0].end
-            })
-        }
-    } else {
-        //slider 的 dataZoom 在动作
-        console.log('slider data zoom')
-        for (let ei of echartsInstance.value) {
-            if (!ei) {
-                continue
-            }
-            ei.dispatchAction({
+// 导出选中
+const outputSelectedData = () => {
+    const fileName = props.rowData.node_name + '_' + props.rowData.imei + '_' + props.rowData.group
+    exportExcel(fileName, selectedData.value, fieldLists)
+}
+
+// 导出全部
+const outputAllData = () => {
+    const fileName = props.rowData.node_name + '_' + props.rowData.imei + '_' + props.rowData.group
+    exportExcel(fileName, tableData.value, fieldLists)
+}
+// #endregion ********** end 处理表格数据 **********
+
+// #region ********** start 处理线表 **********
+// 初始化 供电电压/电池电量 图表
+const volChartsDom: any = ref(null)
+const initVolChartsData = () => {
+    volChartsDom.value = echarts.init(document.getElementById('canvas_vol'))
+    // 绑定事件
+    volChartsDom.value.on('dataZoom', (params: any) => {
+        if (params.customFlag == 'zhang') return
+        // if (params.start == undefined) {
+        //     volChartsDom.value &&
+        //         volChartsDom.value.dispatchAction({
+        //             type: 'dataZoom',
+        //             customFlag: 'zhang',
+        //             // 开始位置的百分比，0 - 100
+        //             start: params.batch[0].start,
+        //             // 结束位置的百分比，0 - 100
+        //             end: params.batch[0].end
+        //         })
+        // } else {
+        volChartsDom.value &&
+            volChartsDom.value.dispatchAction({
                 type: 'dataZoom',
                 customFlag: 'zhang',
                 // 开始位置的百分比，0 - 100
@@ -1621,9 +708,64 @@ const onDataZoom = (params: any) => {
                 // 结束位置的百分比，0 - 100
                 end: params.end
             })
-        }
-        if (echartsInstanceVol.value) {
-            echartsInstanceVol.value.dispatchAction({
+        // }
+    })
+    window.addEventListener('resize', () => {
+        volChartsDom.value.resize()
+    })
+}
+
+// 初始化 信号强度 图表
+const csqChartsDom: any = ref(null)
+const initCsqChartsData = () => {
+    csqChartsDom.value = echarts.init(document.getElementById('canvas_csq'))
+    // 绑定事件
+    csqChartsDom.value.on('dataZoom', (params: any) => {
+        if (params.customFlag == 'zhang') return
+        // if (params.start == undefined) {
+        //     csqChartsDom.value.dispatchAction({
+        //         type: 'dataZoom',
+        //         customFlag: 'zhang',
+        //         // 开始位置的百分比，0 - 100
+        //         start: params.batch[0].start,
+        //         // 结束位置的百分比，0 - 100
+        //         end: params.batch[0].end
+        //     })
+        // } else {
+        csqChartsDom.value.dispatchAction({
+            type: 'dataZoom',
+            customFlag: 'zhang',
+            // 开始位置的百分比，0 - 100
+            start: params.start,
+            // 结束位置的百分比，0 - 100
+            end: params.end
+        })
+        // }
+    })
+    window.addEventListener('resize', () => {
+        csqChartsDom.value.resize()
+    })
+}
+
+const dataChartsDom: any = ref([])
+const initDataChartData = () => {
+    for (let i in props.rowData.node_data.line_datas) {
+        const domInstance = echarts.init(
+            document.getElementById(`canvas_${props.rowData.node_data.line_datas[i].node_line}`)
+        ) //返回dom
+        domInstance.on('dataZoom', (params: any) => {
+            if (params.customFlag == 'zhang') return
+            // if (params.start == undefined) {
+            //     domInstance.dispatchAction({
+            //         type: 'dataZoom',
+            //         customFlag: 'zhang',
+            //         // 开始位置的百分比，0 - 100
+            //         start: params.batch[0].start,
+            //         // 结束位置的百分比，0 - 100
+            //         end: params.batch[0].end
+            //     })
+            // } else {
+            domInstance.dispatchAction({
                 type: 'dataZoom',
                 customFlag: 'zhang',
                 // 开始位置的百分比，0 - 100
@@ -1631,81 +773,51 @@ const onDataZoom = (params: any) => {
                 // 结束位置的百分比，0 - 100
                 end: params.end
             })
-        }
-
-        if (echartsInstanceCsq.value) {
-            echartsInstanceCsq.value.dispatchAction({
-                type: 'dataZoom',
-                customFlag: 'zhang',
-                // 开始位置的百分比，0 - 100
-                start: params.start,
-                // 结束位置的百分比，0 - 100
-                end: params.end
-            })
-        }
+            // }
+        })
+        window.addEventListener('resize', () => {
+            domInstance.resize()
+        })
+        dataChartsDom.value.push(domInstance)
     }
 }
 
-const formatNumber = (n: any) => {
-    n = n.toString()
-    return n[1] ? n : '0' + n
-}
-
-const dateUpToHour = (date: any) => {
-    let dateUp = new Date(date)
-    dateUp.setMinutes(0)
-    dateUp.setSeconds(0)
-    let ms = dateUp.getTime()
-    ms += 1000 * 60 * 60
-    return new Date(ms)
-}
-
-const transferToUnit = (data: any, unit: any, displayUnit: any) => {
-    if (unit > 22) {
-        unit = 23
+// 添加数据
+const drawVolCsqCharts = () => {
+    volChartsDom.value.setOption(volOption(tableData.value, startEndTime.value))
+    csqChartsDom.value.setOption(csqOption(tableData.value, startEndTime.value))
+    for (let i in props.rowData.node_data.line_datas) {
+        dataChartsDom.value[i].setOption(
+            datasOption(
+                changeLineDatas.value,
+                startEndTime.value,
+                props.rowData.node_data.line_datas[i],
+                i
+            )
+        )
     }
-    if (displayUnit > 22) {
-        displayUnit = 23
-    }
-    const coef1 = UNIT_TABLE[unit].coef
-    const coef2 = UNIT_TABLE[displayUnit].coef
-    if (0 == coef1 || 0 == coef2) {
-        return 0
-    }
-    const value = parseFloat(data)
-    return (value / coef1) * coef2
+    console.log('dataChartsDom.value', dataChartsDom.value)
 }
+// #endregion ********** end 处理线表 **********
 
 const close = () => {
-    loading.value = false
-    buttonInfos.value = []
-    buttonCharts.value = 0
-    chartsDom.value = null
+    mapLoading.value = false // 地图加载样式
+    dataEchartsInfo.value = [] // echarts 图表信息
+    map.value = null // 高德地图实例
+    curDataEcharts.value = 0 // 当前echarts下标
+    dataEchartsDom.value = null // echarts dom
 
-    selectStartEndTime.value = false
-    startTime.value = null
-    endTime.value = null
-    startDate.value = null
-    endDate.value = null
-    radio1.value = '1'
+    selectStartEndTime.value = true // 时间段
+    startEndTime.value = [] // 查询起止时间
+    selectChartsTable.value = '1' // 当前选择的是线表还是表格
 
-    yibiaoDatas.value = []
-    dataForNodeDatas.value = []
-    webSocket.value = null
+    ws.value = null // websocket实例
+    tableData.value = [] // 表格数据
+    fieldLists.value = [] // 当前表格column
+    columnTableData.value = [] // 动态列
 
-    dataCount.value = 0
-    linCount.value = 0
-    tempLine.value = []
-    changeLineDatas.value = []
-    lineDatas.value = []
-    colors.value = []
-    echartsInstanceVol.value = null
-    echartsInstance.value = null
-    echartsInstanceCsq.value = null
-    echartKpaInstance.value = null
-    echartVInstance.value = null
-    multipleSelect.value = []
-    echartsInstanceCsq.value = null
+    selectedData.value = [] // 选中的数据
+    dataChartsDom.value = []
 }
 </script>
 
@@ -1726,7 +838,6 @@ const close = () => {
         .map-container {
             flex: 1;
             height: 100%;
-            border-radius: 4px;
         }
         .echarts-container {
             flex: 0 0 400px;
@@ -1737,6 +848,16 @@ const close = () => {
             .button-container {
                 // margin: 0 auto;
             }
+        }
+    }
+    .dialog-control {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 10px 0;
+        .control-left {
+            display: flex;
+            justify-content: center;
         }
     }
 }
