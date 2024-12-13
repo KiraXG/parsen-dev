@@ -210,6 +210,7 @@ import { getLbsList } from '@/api/realTimeData'
 import useUserStore from '@/store/modules/user'
 import * as echarts from 'echarts'
 import { dataOption, volOption, csqOption, datasOption } from './realTimeData-echarts'
+import { ElMessage } from 'element-plus'
 
 const props = defineProps({
     // 打开弹窗
@@ -669,6 +670,10 @@ const getSelectedData = (params: any) => {
 
 // 导出选中
 const outputSelectedData = () => {
+    if (!selectedData.value.length) {
+        ElMessage.error('没有可以导出的数据！')
+        return
+    }
     const fileName = props.rowData.node_name + '_' + props.rowData.imei + '_' + props.rowData.group
     exportExcel(fileName, selectedData.value, fieldLists)
 }
