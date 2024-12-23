@@ -46,7 +46,7 @@
                         <div>
                             时间：{{
                                 row.node_data?.date
-                                    ? formatDate(row.node_data.date, 'YYYY-MM-DD HH:mm')
+                                    ? formatDate(row.node_data.date)
                                     : '- -'
                             }}
                         </div>
@@ -186,7 +186,7 @@ const outputList = () => {
             iccid: item.iccid || '',
             node_data:
                 node_data && node_data.date
-                    ? formatDate(node_data.date, 'YYYY-MM-DD HH:mm:ss')
+                    ? formatDate(node_data.date)
                     : '',
             state:
                 (now - +new Date(node_data.date)) / 1000 / 60 > item['send_gap'] * 3
@@ -194,7 +194,7 @@ const outputList = () => {
                     : '在线'
         })
     })
-    const fileName = `实时数据_${formatDate(new Date(), 'YYYY-MM-DD HH:mm:ss')}`
+    const fileName = `实时数据_${formatDate(new Date())}`
     const excelCellWidth = [5, 6, 8, 8, 5, 10, 4]
     exportExcel(fileName, listData, fieldLists, excelCellWidth)
 }

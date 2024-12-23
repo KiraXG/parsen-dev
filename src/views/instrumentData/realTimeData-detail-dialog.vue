@@ -31,7 +31,7 @@
                             <span>最后更新时间:</span>
                             {{
                                 rowData.node_data
-                                    ? formatDate(rowData.node_data.date, 'YYYY-MM-DD HH:mm:ss')
+                                    ? formatDate(rowData.node_data.date)
                                     : '- -'
                             }}
                         </div>
@@ -276,7 +276,7 @@ const open = () => {
     // 起始时间: 结束时间的前一天
     let start_time = formatDate(props.rowData.node_data.date, 'YYYY-MM-DD HH:mm:ss', 1, 'day')
     // 结束时间
-    let end_time = formatDate(props.rowData.node_data.date, 'YYYY-MM-DD HH:mm:ss')
+    let end_time = formatDate(props.rowData.node_data.date)
     // 时间日期选择器默认时间
     startEndTime.value = [start_time, end_time]
     const params = {
@@ -375,7 +375,7 @@ const loadMap = (lbsList: any) => {
                 if (i !== list.length - 1) {
                     marker = new AMap.Marker({
                         position: list[i],
-                        title: list[i].date
+                        title: formatDate(list[i].date)
                     })
                 } else {
                     let endIcon = new AMap.Icon({
@@ -391,7 +391,7 @@ const loadMap = (lbsList: any) => {
                     marker = new AMap.Marker({
                         position: list[i],
                         icon: endIcon,
-                        title: list[i].date,
+                        title: formatDate(list[i].date),
                         offset: new AMap.Pixel(-20, -20)
                     })
                 }
@@ -641,7 +641,7 @@ const getTableData = () => {
                         ...item,
                         ...columnTableData.value,
                         ...lineDataObj,
-                        date: formatDate(item.date, 'YYYY-MM-DD HH:mm:ss'),
+                        date: formatDate(item.date),
                         groupU: `${item.vol}${item.vol < 10 ? 'V' : '%'}`,
                         group: item.vol,
                         gap

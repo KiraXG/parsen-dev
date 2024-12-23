@@ -14,7 +14,7 @@
         </template>
         <!-- 上传时间 -->
         <template #last_date="{ row }">
-            {{ row.last_date ? formatDate(row.last_date, 'YYYY-MM-DD HH:mm:ss') : '- -' }}
+            {{ row.last_date ? formatDate(row.last_date) : '- -' }}
         </template>
     </ps-search-table>
 </template>
@@ -83,10 +83,10 @@ const outputList = () => {
             activate_time: item.activate_time || '',
             expiry_date: item.expiry_date || '',
             residue_flow: item.residue_flow || '',
-            last_date: formatDate(item.last_date, 'YYYY-MM-DD HH:mm:ss')
+            last_date: formatDate(item.last_date)
         })
     })
-    const fileName = `SIM卡列表_${formatDate(new Date(), 'YYYY-MM-DD HH:mm:ss')}`
+    const fileName = `SIM卡列表_${formatDate(new Date())}`
     const excelCellWidth = [8, 9, 8, 6, 3, 3, 5, 5, 5, 9]
     exportExcel(fileName, listData, fieldLists, excelCellWidth)
 }

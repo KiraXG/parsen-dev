@@ -23,7 +23,7 @@ export const getTime = () => {
 
 // 格式化时间
 export const formatDate = (date?: any, format?: any, value: any = 0, type: any = 'day') => {
-    return dayjs(date).subtract(value, type).format(format)
+    return dayjs(date).subtract(value, type).format(format || 'YYYY-MM-DD HH:mm:ss')
 }
 
 // 格式化为一天的开始
