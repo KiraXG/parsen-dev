@@ -1,29 +1,28 @@
 <template>
-    <div
-        class="realTimeData-container"
-        v-loading="loading"
-        element-loading-text="正在加载数据，请稍等..."
-    >
-        <div class="realTimeData-left">
-            <el-input
-                class="filter-input"
-                v-model="filterText"
-                clearable
-                placeholder="请输入关键字过滤"
-            ></el-input>
+    <div class="tree-table-container realTimeData-container">
+        <div class="tree-table-left realTimeData-left">
             <company-tree
                 ref="companyTree"
-                class="companyTree"
-                :filterText="filterText"
                 @dataLoading="dataLoading"
                 @getNodeClickData="getNodeClickData"
             ></company-tree>
             <el-button class="warning-button" @click="showDialogFunc">详细报警信息</el-button>
             <div id="alarm-preview" class="card alarm-preview"></div>
         </div>
-        <div class="realTimeData-right">
+        <div class="resize">
+            <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="按住拖动改变左右区域的大小"
+                placement="right"
+            >
+                <div class="drag-container"></div>
+            </el-tooltip>
+        </div>
+        <div class="tree-table-right realTimeData-right">
             <ps-search-table
                 rowKey="node_id"
+                :loading="loading"
                 :border="true"
                 :fieldLists="fieldLists"
                 :tableData="_tableData"
@@ -93,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import CompanyTree from '@/components/company-tree/index.vue'
 import { alarmOption } from './realTimeData-echarts'
 import { formatDate, translateUnitDesp, tagTypes, exportExcel } from '@/utils'
@@ -101,11 +100,12 @@ import * as echarts from 'echarts'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import RealTimeDataDetailDialog from './realTimeData-detail-dialog.vue'
+import useSettingStore from '@/store/modules/setting'
+import { dragControllerDiv } from '@/utils'
 
 // #region ********** start 左侧树方法 **********
 const curCheckData: any = ref([]) // 当前点击节点的project总数
 const alarmCount: any = ref(0) // 仪表总数
-const filterText = ref('') // 筛选数据
 
 // 路由名称
 const $router = useRouter()
@@ -113,7 +113,7 @@ const routerName: any = $router.currentRoute.value.name
 // 点击树的多选框传过来的数据
 const getNodeClickData = (params: any) => {
     // 存储已选择的节点
-    localStorage.setItem(routerName, JSON.stringify(params.saveData))
+    if (params.saveData) localStorage.setItem(routerName, JSON.stringify(params.saveData.value))
     curCheckData.value = params.curCheckData.value
     alarmCount.value = params.alarmCount.value
     setTableData(curCheckData)
@@ -321,51 +321,56 @@ const closeDialog = () => {
 
 const showDialogFunc = () => {}
 
+// 拖拽改变容器大小
+const settingStore = useSettingStore()
+watch(
+    settingStore,
+    (val) => {
+        dragControllerDiv(
+            'realTimeData-left',
+            'realTimeData-right',
+            'realTimeData-container',
+            val.isCollapse
+        )
+    },
+    { deep: true }
+)
+
 onMounted(() => {
+    dragControllerDiv(
+        'realTimeData-left',
+        'realTimeData-right',
+        'realTimeData-container',
+        settingStore.isCollapse
+    )
     initCharts()
 })
 </script>
 
 <style lang="scss" scoped>
 .realTimeData-container {
-    width: 100%;
-    height: 100%;
-    display: flex;
-
     .realTimeData-left {
-        flex: 0 0 250px;
-        margin-right: 5px;
-        display: flex;
-        flex-direction: column;
-
         .filter-input {
-            flex: 0 0 36px;
+            flex: 0 0 34px;
             margin-bottom: 5px;
-        }
-
-        .companyTree {
-            flex: 1;
-            padding: 5px 0 5px 0;
-            border: 1px rgba(0, 0, 0, 0.1) solid;
-            border-radius: 5px;
         }
 
         .warning-button {
             width: 100%;
             margin: 5px 0;
-            flex: 0 0 36px;
+            flex: 0 0 34px;
         }
 
         .alarm-preview {
             flex: 0 0 280px;
             padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
     }
 
     .realTimeData-right {
-        flex: 1;
-        width: 80%;
-        height: calc(100% - 85px);
         .withPic {
             display: flex;
             flex-direction: column;

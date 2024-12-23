@@ -1,28 +1,27 @@
 <template>
-    <div
-        class="projectDataManagement-container"
-        v-loading="loading"
-        element-loading-text="正在加载数据，请稍等..."
-    >
-        <div class="projectDataManagement-left">
-            <el-input
-                class="filter-input"
-                v-model="filterText"
-                clearable
-                placeholder="请输入关键字过滤"
-            ></el-input>
+    <div class="tree-table-container projectDataManagement-container">
+        <div class="tree-table-left projectDataManagement-left">
             <company-tree
                 ref="companyTree"
-                class="companyTree"
-                :filterText="filterText"
                 :showCheckbox="false"
                 @dataLoading="dataLoading"
                 @getTreeNodeClick="getTreeNodeClick"
             ></company-tree>
         </div>
-        <div class="projectDataManagement-right">
+        <div class="resize">
+            <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="按住拖动改变左右区域的大小"
+                placement="right"
+            >
+                <div class="drag-container"></div>
+            </el-tooltip>
+        </div>
+        <div class="tree-table-right projectDataManagement-right">
             <ps-search-table
                 rowKey="node_id"
+                :loading="loading"
                 :border="true"
                 :labelWidth="100"
                 :fieldLists="fieldLists"
@@ -73,12 +72,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import CompanyTree from '@/components/company-tree/index.vue'
 import useUserStore from '@/store/modules/user'
 import ProjectDialog from './project-dialog.vue'
 import { deleteProject } from '@/api/projectManagement'
 import { ElMessage } from 'element-plus'
+import useSettingStore from '@/store/modules/setting'
+import { dragControllerDiv } from '@/utils'
 
 const loading = ref(false)
 const userStore = useUserStore()
@@ -88,7 +89,6 @@ const companyTree: any = ref(null) // 包含子组件暴露的方法
 // #region ********** start 左侧树方法 **********
 const curCheckData: any = ref([]) // 当前点击节点的数据列表
 const curProject: any = ref({}) // 当前点击的节点数据
-const filterText: any = ref('') // 筛选数据
 
 // 加载样式
 const dataLoading = (params: any) => {
@@ -213,63 +213,30 @@ const closeDialog = () => {
     rowData.value = {}
 }
 // #endregion ********** end 处理表弹窗表单数据 **********
+
+// 拖拽改变容器大小
+const settingStore = useSettingStore()
+watch(
+    settingStore,
+    (val) => {
+        dragControllerDiv(
+            'projectDataManagement-left',
+            'projectDataManagement-right',
+            'projectDataManagement-container',
+            val.isCollapse
+        )
+    },
+    { deep: true }
+)
+
+onMounted(() => {
+    dragControllerDiv(
+        'projectDataManagement-left',
+        'projectDataManagement-right',
+        'projectDataManagement-container',
+        settingStore.isCollapse
+    )
+})
 </script>
 
-<style lang="scss" scoped>
-.projectDataManagement-container {
-    width: 100%;
-    height: 100%;
-    display: flex;
-
-    .projectDataManagement-left {
-        flex: 0 0 250px;
-        margin-right: 5px;
-        display: flex;
-        flex-direction: column;
-
-        .filter-input {
-            flex: 0 0 36px;
-            margin-bottom: 5px;
-        }
-
-        .companyTree {
-            flex: 1;
-            padding: 5px 0 5px 0;
-            border: 1px rgba(0, 0, 0, 0.1) solid;
-            border-radius: 5px;
-        }
-
-        .warning-button {
-            width: 100%;
-            margin: 5px 0;
-            flex: 0 0 36px;
-        }
-
-        .alarm-preview {
-            flex: 0 0 280px;
-            padding: 0;
-        }
-    }
-
-    .projectDataManagement-right {
-        flex: 1;
-        width: 80%;
-        height: calc(100% - 85px);
-        .withPic {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            .picInline {
-                width: 100px;
-                height: 100px;
-            }
-        }
-
-        .tag-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-    }
-}
-</style>
+<style lang="scss" scoped></style>

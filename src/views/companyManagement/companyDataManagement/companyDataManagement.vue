@@ -1,63 +1,59 @@
 <template>
-    <div style="height: calc(100% - 140px)">
-        <ps-search-table
-            :border="true"
-            :loading="loading"
-            :fieldLists="fieldLists"
-            :tableData="_tableData"
-            :labelWidth="100"
-        >
-            <!-- 新建 -->
-            <template #tableHeader>
-                <el-button type="primary" @click="handleAdd">新建</el-button>
-            </template>
-            <!-- 管仪表 -->
-            <template #manage_node="{ row }">
-                <el-tag :type="row.manage_node == 1 ? 'success' : 'danger'">{{
-                    row.manage_node == 1 ? '是' : '否'
-                }}</el-tag>
-            </template>
-            <!-- 管用户 -->
-            <template #manage_company="{ row }">
-                <el-tag :type="row.manage_company == 1 ? 'success' : 'danger'">{{
-                    row.manage_company == 1 ? '是' : '否'
-                }}</el-tag>
-            </template>
-            <template #operation="{ row }">
-                <!-- 编辑 -->
-                <el-button type="primary" link icon="Edit" size="small" @click="handleEdit(row)"
-                    >编辑</el-button
-                >
-                <!-- 删除 -->
-                <el-popconfirm
-                    confirm-button-text="是"
-                    cancel-button-text="否"
-                    icon="InfoFilled"
-                    icon-color="#626AEF"
-                    title="确定要删除吗？"
-                    placement="top"
-                    @confirm="handleDelete(row)"
-                >
-                    <template #reference>
-                        <span style="margin-left: 12px">
-                            <el-button type="danger" link icon="Delete" size="small"
-                                >删除</el-button
-                            >
-                        </span>
-                    </template>
-                </el-popconfirm>
-            </template>
-        </ps-search-table>
-        <company-dialog
-            :formFields="formFields"
-            :openDialog="openDialog"
-            :dialogHeader="dialogHeader"
-            :rowData="rowData"
-            :mode="mode"
-            @confirm="confirm"
-            @close="closeDialog"
-        ></company-dialog>
-    </div>
+    <ps-search-table
+        :border="true"
+        :loading="loading"
+        :fieldLists="fieldLists"
+        :tableData="_tableData"
+        :labelWidth="100"
+    >
+        <!-- 新建 -->
+        <template #tableHeader>
+            <el-button type="primary" @click="handleAdd">新建</el-button>
+        </template>
+        <!-- 管仪表 -->
+        <template #manage_node="{ row }">
+            <el-tag :type="row.manage_node == 1 ? 'success' : 'danger'">{{
+                row.manage_node == 1 ? '是' : '否'
+            }}</el-tag>
+        </template>
+        <!-- 管用户 -->
+        <template #manage_company="{ row }">
+            <el-tag :type="row.manage_company == 1 ? 'success' : 'danger'">{{
+                row.manage_company == 1 ? '是' : '否'
+            }}</el-tag>
+        </template>
+        <template #operation="{ row }">
+            <!-- 编辑 -->
+            <el-button type="primary" link icon="Edit" size="small" @click="handleEdit(row)"
+                >编辑</el-button
+            >
+            <!-- 删除 -->
+            <el-popconfirm
+                confirm-button-text="是"
+                cancel-button-text="否"
+                icon="InfoFilled"
+                icon-color="#626AEF"
+                title="确定要删除吗？"
+                placement="top"
+                @confirm="handleDelete(row)"
+            >
+                <template #reference>
+                    <span style="margin-left: 12px">
+                        <el-button type="danger" link icon="Delete" size="small">删除</el-button>
+                    </span>
+                </template>
+            </el-popconfirm>
+        </template>
+    </ps-search-table>
+    <company-dialog
+        :formFields="formFields"
+        :openDialog="openDialog"
+        :dialogHeader="dialogHeader"
+        :rowData="rowData"
+        :mode="mode"
+        @confirm="confirm"
+        @close="closeDialog"
+    ></company-dialog>
 </template>
 
 <script setup lang="ts">

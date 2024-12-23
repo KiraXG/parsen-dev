@@ -1,29 +1,28 @@
 <template>
-    <div
-        class="instrumentDataManagement-container"
-        v-loading="loading"
-        element-loading-text="正在加载数据，请稍等..."
-    >
-        <div class="instrumentDataManagement-left">
-            <el-input
-                class="filter-input"
-                v-model="filterText"
-                clearable
-                placeholder="请输入关键字过滤"
-            ></el-input>
+    <div class="tree-table-container instrumentDataManagement-container">
+        <div class="tree-table-left instrumentDataManagement-left">
             <company-tree
                 ref="companyTree"
-                class="companyTree"
-                :filterText="filterText"
                 @dataLoading="dataLoading"
                 @getTreeNodeClick="getTreeNodeClick"
                 @getNodeClickData="getNodeClickData"
                 @getNewNodeClickData="getNewNodeClickData"
             ></company-tree>
         </div>
-        <div class="instrumentDataManagement-right">
+        <div class="resize">
+            <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="按住拖动改变左右区域的大小"
+                placement="right"
+            >
+                <div class="drag-container"></div>
+            </el-tooltip>
+        </div>
+        <div class="tree-table-right instrumentDataManagement-right">
             <ps-search-table
                 rowKey="node_id"
+                :loading="loading"
                 :border="true"
                 :fieldLists="fieldLists"
                 :tableData="_tableData"
@@ -116,7 +115,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import CompanyTree from '@/components/company-tree/index.vue'
 import { UNIT_TABLE, tagTypes } from '@/utils'
 import { deleteNode, showControl } from '@/api/instrumentManagement'
@@ -124,6 +123,8 @@ import useUserStore from '@/store/modules/user'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import InstrumentDialog from './instrument-dialog.vue'
+import useSettingStore from '@/store/modules/setting'
+import { dragControllerDiv } from '@/utils'
 
 const loading = ref(false)
 const userStore = useUserStore()
@@ -132,7 +133,6 @@ const userStore = useUserStore()
 const curCheckData: any = ref([]) // 当前点击节点的project总数
 const curCheckNodeData: any = ref({}) // 当前点击节点的project
 const curProject: any = ref({}) // 当前点击节点的project名称
-const filterText: any = ref('') // 筛选数据
 
 // 路由名称
 const $router = useRouter()
@@ -140,14 +140,35 @@ const routerName: any = $router.currentRoute.value.name
 // 点击树的多选框传过来的数据
 const getNodeClickData = (params: any) => {
     // 存储已选择的节点
-    localStorage.setItem(routerName, JSON.stringify(params.saveData))
+    if (params.saveData) localStorage.setItem(routerName, JSON.stringify(params.saveData.value))
     curCheckData.value = params.curCheckData.value
     curProject.value = params.project
     setTableData(curCheckData)
 }
 
+// 拖拽改变容器大小
+const settingStore = useSettingStore()
+watch(
+    settingStore,
+    (val) => {
+        dragControllerDiv(
+            'instrumentDataManagement-left',
+            'instrumentDataManagement-right',
+            'instrumentDataManagement-container',
+            val.isCollapse
+        )
+    },
+    { deep: true }
+)
+
 const companyTree: any = ref(null) // 包含子组件暴露的方法
 onMounted(() => {
+    dragControllerDiv(
+        'instrumentDataManagement-left',
+        'instrumentDataManagement-right',
+        'instrumentDataManagement-container',
+        settingStore.isCollapse
+    )
     // 刷新后将已存储的节点再赋值回去
     if (localStorage.getItem(routerName)) {
         companyTree.value.setTreeSelectNode(routerName)
@@ -460,60 +481,9 @@ const tagType = (item: any) => {
 </script>
 
 <style lang="scss" scoped>
-.instrumentDataManagement-container {
-    width: 100%;
-    height: 100%;
+.tag-container {
     display: flex;
-
-    .instrumentDataManagement-left {
-        flex: 0 0 250px;
-        margin-right: 5px;
-        display: flex;
-        flex-direction: column;
-
-        .filter-input {
-            flex: 0 0 36px;
-            margin-bottom: 5px;
-        }
-
-        .companyTree {
-            flex: 1;
-            padding: 5px 0 5px 0;
-            border: 1px rgba(0, 0, 0, 0.1) solid;
-            border-radius: 5px;
-        }
-
-        .warning-button {
-            width: 100%;
-            margin: 5px 0;
-            flex: 0 0 36px;
-        }
-
-        .alarm-preview {
-            flex: 0 0 280px;
-            padding: 0;
-        }
-    }
-
-    .instrumentDataManagement-right {
-        flex: 1;
-        width: 80%;
-        height: calc(100% - 85px);
-        .withPic {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            .picInline {
-                width: 100px;
-                height: 100px;
-            }
-        }
-
-        .tag-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-    }
+    flex-direction: column;
+    align-items: center;
 }
 </style>

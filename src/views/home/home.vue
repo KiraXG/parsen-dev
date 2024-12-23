@@ -1,16 +1,32 @@
 <template>
-    <div class="home-container" v-loading="loading" element-loading-text="正在加载数据，请稍等...">
-        <div class="home-left">
+    <div class="tree-table-container home-container">
+        <div class="tree-table-left home-left">
             <company-tree
                 ref="companyTree"
+                :hasFilter="false"
                 @dataLoading="dataLoading"
-                @getTreeData="getTreeData"
+                @getHomeEchartsCount="getHomeEchartsCount"
                 @getNodeClickData="getNodeClickData"
             ></company-tree>
         </div>
-        <div class="home-right">
+        <div class="resize">
+            <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="按住拖动改变左右区域的大小"
+                placement="right"
+            >
+                <div class="drag-container"></div>
+            </el-tooltip>
+        </div>
+        <div class="tree-table-right home-right">
             <!-- echarts -->
-            <div id="chartsContainer" class="chartsContainer">
+            <div
+                id="chartsContainer"
+                class="chartsContainer"
+                v-loading="loading"
+                element-loading-text="正在加载数据，请稍等..."
+            >
                 <div v-for="item in chartsName" class="chartContainer" id="chartContainer">
                     <div :id="item" class="chart-items"></div>
                 </div>
@@ -23,31 +39,45 @@
 
 <script setup lang="ts">
 import CompanyTree from '@/components/company-tree/index.vue'
-import { ref, onMounted, reactive } from 'vue'
-import { companyOption, itemOption, nodeOption, alarmOption, stateOption } from './home-charts'
-import * as echarts from 'echarts'
-import gdMap from '@/utils/gaode-map'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import useSettingStore from '@/store/modules/setting'
+import * as echarts from 'echarts'
+import { companyOption, itemOption, nodeOption, alarmOption, stateOption } from './home-charts'
+import gdMap from '@/utils/gaode-map'
+import { dragControllerDiv } from '@/utils'
+import useCompanyTreeStore from '@/store/modules/company-tree'
 
+// #region ********** start 处理左侧树 **********
 const curCheckData: any = ref([]) // 当前点击节点的project总数
-const companyCount: any = ref(0) // 公司总数
-const itemCount: any = ref(0) // 项目总数
+const companyCount: any = ref(0) // 仪表总数
+const itemCount: any = ref(0) // 仪表总数
 const alarmCount: any = ref(0) // 仪表总数
 
-// 树加载时传过来的数据
-const getTreeData = (params: any) => {
-    companyCount.value = params.companyCount.value
-    itemCount.value = params.itemCount.value
-    draw()
+// 第一次进来时需要用
+const companyTreeStore = useCompanyTreeStore()
+watch(
+    companyTreeStore,
+    (val) => {
+        companyCount.value = val.companyCount
+        itemCount.value = val.itemCount
+        draw()
+    },
+    { deep: true }
+)
+
+// 刷新页面后需要用
+const getHomeEchartsCount = (val: any) => {
+    companyCount.value = val.companyCount.value
+    itemCount.value = val.itemCount.value
 }
 
-// 路由名称
-const $router = useRouter()
+const $router = useRouter() // 路由名称
 const routerName: any = $router.currentRoute.value.name
 // 点击树的多选框传过来的数据
 const getNodeClickData = (params: any) => {
     // 存储已选择的节点
-    localStorage.setItem(routerName, JSON.stringify(params.saveData))
+    if (params.saveData) localStorage.setItem(routerName, JSON.stringify(params.saveData.value))
     curCheckData.value = params.curCheckData.value
     alarmCount.value = params.alarmCount.value
     draw()
@@ -66,8 +96,9 @@ const loading = ref(false)
 const dataLoading = (params: any) => {
     loading.value = params.loading.value
 }
+// #endregion ********** end 处理左侧树 **********
 
-// #region ********** start 处理echarts图表**********
+// #region ********** start 处理echarts图表 **********
 const chartsData: any = ref() // 图表数据arr
 const chartsDom: any = reactive([]) // 图表dom arr
 const chartsName: any = ['company', 'item', 'node', 'alarm', 'state']
@@ -77,8 +108,8 @@ const initCharts = () => {
     for (let item of chartsName) {
         chartsDom[item] = echarts.init(document.getElementById(item))
     }
-    window.addEventListener('resize', chartResize)
     draw()
+    window.addEventListener('resize', chartResize)
 }
 
 // echarts图表数据
@@ -158,7 +189,18 @@ const loadMap = () => {
     })
 }
 
+// 拖拽改变容器大小
+const settingStore = useSettingStore()
+watch(
+    settingStore,
+    (val) => {
+        dragControllerDiv('home-left', 'home-right', 'home-container', val.isCollapse)
+    },
+    { deep: true }
+)
+
 onMounted(() => {
+    dragControllerDiv('home-left', 'home-right', 'home-container', settingStore.isCollapse)
     initCharts()
     loadMap()
 })
@@ -166,23 +208,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .home-container {
-    display: flex;
-    height: 100%;
-    overflow: hidden;
-
-    .home-left {
-        flex: 0 0 260px;
-        overflow-x: scroll;
-        margin-right: 5px;
-        padding: 10px 0 5px 0;
-        border: 1px rgba(0, 0, 0, 0.1) solid;
-        border-radius: 5px;
-    }
-
     .home-right {
-        flex: 1;
-        height: 100%;
-
         .chartsContainer {
             width: 100%;
             height: 50%;

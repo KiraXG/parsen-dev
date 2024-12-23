@@ -499,6 +499,6 @@ const unitCodeToName = (code: any) => {
 
 <style lang="scss" scoped>
 ::v-deep(.el-select__wrapper) {
-    height: 36px;
+    height: 34px;
 }
 </style>

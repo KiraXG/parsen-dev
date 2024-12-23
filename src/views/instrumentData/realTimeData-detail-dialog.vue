@@ -338,7 +338,7 @@ const loadMap = (lbsList: any) => {
         map.value.addControl(controlBar)
 
         // 没有就不画点
-        if (map.value == null || lbsList == null || !lbsList.length) {
+        if (!map.value || !lbsList || !lbsList.length) {
             return
         }
 

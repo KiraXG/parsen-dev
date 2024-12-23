@@ -1,51 +1,44 @@
 <template>
-    <div style="height: 100%">
-        <ps-search-table
-            :hasSearch="false"
-            :hasPagination="false"
-            :loading="loading"
-            :tableData="tableData"
-            :fieldLists="fieldLists"
-            :defaultExpandAll="true"
-        >
-            <!-- 操作 -->
-            <template #operation="{ row }">
-                <!-- 添加下属公司 -->
-                <el-button
-                    type="primary"
-                    icon="CirclePlus"
-                    link
-                    @click="addCompany(row)"
-                    size="small"
-                    >添加下属公司</el-button
-                >
-                <!-- 删除归属关系 -->
-                <el-popconfirm
-                    confirm-button-text="是"
-                    cancel-button-text="否"
-                    icon="InfoFilled"
-                    icon-color="#626AEF"
-                    title="确定要删除吗？"
-                    placement="top"
-                    @confirm="deleteCompany(row)"
-                >
-                    <template #reference>
-                        <span style="margin-left: 12px">
-                            <el-button
-                                v-if="!row.noDelete"
-                                link
-                                type="danger"
-                                size="small"
-                                icon="Delete"
-                            >
-                                删除归属关系
-                            </el-button>
-                        </span>
-                    </template>
-                </el-popconfirm>
-            </template>
-        </ps-search-table>
-    </div>
+    <ps-search-table
+        :hasSearch="false"
+        :hasPagination="false"
+        :loading="loading"
+        :tableData="tableData"
+        :fieldLists="fieldLists"
+        :defaultExpandAll="true"
+    >
+        <!-- 操作 -->
+        <template #operation="{ row }">
+            <!-- 添加下属公司 -->
+            <el-button type="primary" icon="CirclePlus" link @click="addCompany(row)" size="small"
+                >添加下属公司</el-button
+            >
+            <!-- 删除归属关系 -->
+            <el-popconfirm
+                confirm-button-text="是"
+                cancel-button-text="否"
+                icon="InfoFilled"
+                icon-color="#626AEF"
+                title="确定要删除吗？"
+                placement="top"
+                @confirm="deleteCompany(row)"
+            >
+                <template #reference>
+                    <span style="margin-left: 12px">
+                        <el-button
+                            v-if="!row.noDelete"
+                            link
+                            type="danger"
+                            size="small"
+                            icon="Delete"
+                        >
+                            删除归属关系
+                        </el-button>
+                    </span>
+                </template>
+            </el-popconfirm>
+        </template>
+    </ps-search-table>
     <company-dialog
         :openDialog="openDialog"
         :dialogHeader="dialogHeader"
