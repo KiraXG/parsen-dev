@@ -403,6 +403,10 @@ const fieldLists = reactive([
     {
         label: '仪表名称',
         prop: 'node_name',
+        search: {
+            type: 'input',
+            span: 1
+        },
         minWidth: 200
     },
     {
