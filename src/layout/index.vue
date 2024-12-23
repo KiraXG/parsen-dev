@@ -15,6 +15,14 @@
 import LayoutHead from './layout-head.vue'
 import LayoutSide from './layout-side.vue'
 import LayoutMain from './layout-main.vue'
+import useCompanyTreeStore from '@/store/modules/company-tree'
+
+// 加载树数据
+const companyTreeStore = useCompanyTreeStore()
+const initTreeData = () => {
+    companyTreeStore.getTreeData()
+}
+initTreeData()
 </script>
 
 <style lang="scss" scoped>

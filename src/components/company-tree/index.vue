@@ -1,9 +1,17 @@
 <template>
+    <el-input
+        v-if="hasFilter"
+        class="filter-input"
+        v-model="filterText"
+        clearable
+        placeholder="请输入关键字过滤"
+    ></el-input>
     <ps-tree
         ref="companyTree"
+        class="companyTree"
         :loading="treeLoading"
         :filterText="filterText"
-        :treeData="treeData"
+        :treeData="showCheckbox ? treeData : noChildTreeData"
         :showCheckbox="showCheckbox"
         :filterNodeMethod="filterCompanyTreeFunc"
         :handleNodeClick="companyTreeNodeClick"
@@ -29,21 +37,17 @@
 </template>
 
 <script setup lang="ts">
-import {
-    getCompanyTree,
-    getCompanyProjects,
-    getProjectsNodes,
-    getCompanysProjects
-} from '@/api/home'
-import { ref, reactive } from 'vue'
+import { getProjectsNodes, getCompanysProjects } from '@/api/home'
+import { ref, reactive, nextTick, onBeforeUnmount, onMounted } from 'vue'
 import useUserStore from '@/store/modules/user'
-
-const userStore = useUserStore()
+import useCompanyTreeStore from '@/store/modules/company-tree'
+import { storeToRefs } from 'pinia'
 
 const props = defineProps({
-    filterText: {
-        type: String,
-        default: ''
+    // 是否有过滤框
+    hasFilter: {
+        type: Boolean,
+        default: true
     },
     // 	节点是否可被选择
     showCheckbox: {
@@ -52,98 +56,54 @@ const props = defineProps({
     }
 })
 
+const userStore = useUserStore()
+const companyTreeStore = useCompanyTreeStore()
+
+// 解构store中的数据
+const { treeData, noChildTreeData, treeLoading, companyCount, itemCount } = storeToRefs(
+    companyTreeStore
+) as any
+
+const filterText = ref('') // 筛选数据
+
 // 定义emit方法
 const emit = defineEmits<{
     getTreeData: [{ treeData: object[]; companyCount: number; itemCount: number }]
     getNodeClickData: [
         {
-            checkData: object
-            curCheckData: object[]
-            alarmCount: number
-            project: object
-            saveData: object
+            curCheckData?: object[]
+            alarmCount?: number
+            project?: object
+            saveData?: object
         }
     ]
     getNewNodeClickData: [{ curCheckData: object[] }]
     dataLoading: [{ loading: object }]
     getTreeNodeClick: [{ project: object; projectList?: object }]
+    getHomeEchartsCount: [{ companyCount: any; itemCount: any }]
 }>()
 
-// #region ********** start 处理左侧树列表数据 **********
-const treeData: any = ref([]) // 树数据
-
-// echarts 图表用到的数据
-const companyCount: any = ref(0) // 公司总数
-const itemCount: any = ref(0) // 项目总数
-const alarmCount: any = ref(0) // 仪表总数
-
-// 组装树
-const treeLoading = ref(false)
-const getTreeData = async () => {
-    treeLoading.value = true
-    // 请求接口获取数据
-    const params = {
-        access_token: userStore.token,
-        company_id: userStore.userInfo.company_id
-    }
-    const res: any = await getCompanyTree(params)
-    if (!res.company_tree) return
-    // 深拷贝
-    const resTree: any = reactive([JSON.parse(JSON.stringify(res.company_tree))])
-    // 组装树
-    assembleTree(resTree)
-    treeData.value = resTree
-    treeLoading.value = false
+// 获取home echarts需要的数据
+const getHomeEchartsCount = () => {
+    emit('getHomeEchartsCount', { companyCount, itemCount })
 }
 
-// 递归遍历
-const assembleTree = (tree: any) => {
-    if (tree.length) {
-        tree.forEach((item: any) => {
-            item.type = 'c'
-            item.id = item.company_id
-            companyCount.value += 1
-            if (props.showCheckbox) {
-                addProjectsToCompany(item)
-            }
-            if (item.children) assembleTree(item.children)
-        })
-    }
-}
-
-// 将查询到的数据添加到数组中
-const addProjectsToCompany = async (child: any) => {
-    const data = {
-        access_token: userStore.token,
-        company_id: child.company_id
-    }
-    const res: any = await getCompanyProjects(data)
-    for (let item of res.project_list) {
-        const projectNode = {
-            ...item,
-            id: 'c_' + child.company_id + '_p_' + item.project_id, //为了工程ID与公司ID不重复,工程ID加上 p_ 前缀
-            company_name: child.company_name,
-            label: item.project_name,
-            type: 'p'
-        }
-        child.children.push(projectNode)
-        itemCount.value += 1
-        emit('getTreeData', { treeData, companyCount, itemCount })
-    }
-}
-
-getTreeData()
-// #endregion ********** end 获取左侧树列表数据 **********
+getHomeEchartsCount()
 
 // #region  ********** start 点击多选框的方法 **********
 // 点击节点后请求到的数据{ id: list }
 const checkData: any = reactive({})
-// 整合点击节点后请求到的数据[ list ]
+// 整合点击节点后请求到的数据[ ...list ]
 const curCheckData: any = ref([])
 // 请求过的节点[id]
-const nodeChecked: any = ref([])
+const nodeCheckedId: any = ref([])
 // 当前勾选的id[id]
-const curNodeCheckId: any = ref([])
+const curNodeCheckedId: any = ref([])
+
+const alarmCount: any = ref(0) // 仪表总数
+
+// 保存勾选的数据event
+const saveData: any = ref({})
 
 // 请求数据时图表加载样式
 const loading = ref(false)
@@ -154,12 +114,12 @@ const companyTreeNodeCheck = async (project: any, check: any) => {
     const curCompanyChecked = check.checkedNodes.filter((item: any) => item.type === 'p')
     // console.log('当前点击类型为p的节点', curCompanyChecked)
     // 当前点击的p节点id [id]
-    curNodeCheckId.value = curCompanyChecked.map((item: any) => item.id)
-    // console.log('当前点击的p节点id', curNodeCheckId.value)
+    curNodeCheckedId.value = curCompanyChecked.map((item: any) => item.id)
+    // console.log('当前点击的p节点id', curNodeCheckedId.value)
 
     // 找出未请求过的节点 [id]
-    const noRequestedNode = curNodeCheckId.value.filter(
-        (item: any) => !nodeChecked.value.includes(item)
+    const noRequestedNode = curNodeCheckedId.value.filter(
+        (item: any) => !nodeCheckedId.value.includes(item)
     )
     // console.log('找出未请求过的节点', noRequestedNode)
 
@@ -167,6 +127,11 @@ const companyTreeNodeCheck = async (project: any, check: any) => {
     const filterCompanyChecked = curCompanyChecked.filter((item: any) =>
         noRequestedNode.includes(item.id)
     )
+    // 当前点击的仪表总数
+    saveData.value = {
+        project,
+        check
+    }
     // console.log('未请求的节点去请求', filterCompanyChecked)
     for (let item of filterCompanyChecked) {
         // 请求接口
@@ -180,26 +145,77 @@ const companyTreeNodeCheck = async (project: any, check: any) => {
     }
     // console.log('每个节点请求到的数据{ id: list }', checkData.value)
     // 未请求过的节点id推送到合集中
-    nodeChecked.value.push(...noRequestedNode)
-    // console.log('节点id合集', nodeChecked.value)
+    nodeCheckedId.value.push(...noRequestedNode)
+    // console.log('节点id合集', nodeCheckedId.value)
     // 当前点击的仪表总数
     alarmCount.value = 0
     curCheckData.value = []
-    for (let item of curNodeCheckId.value) {
+    for (let item of curNodeCheckedId.value) {
         curCheckData.value.push(...checkData[item])
         alarmCount.value += checkData[item].length
     }
-    console.log('当前点击project列表', curCheckData.value)
+    emit('getNodeClickData', { curCheckData, alarmCount, project, saveData })
+    // console.log('当前点击project列表', curCheckData.value)
     loading.value = false
-    const saveData: any = {
-        project,
-        check
-    }
-    companyTree.value!.setTreeSelectNode(curNodeCheckId.value)
+    await nextTick()
+    companyTree.value!.setTreeSelectNode(saveData.value.check.checkedNodes)
     emit('dataLoading', { loading })
-    emit('getNodeClickData', { checkData, curCheckData, alarmCount, project, saveData })
 }
 // #endregion ********** end 点击多选框的方法 **********
+
+// websocket
+const ws: any = ref(null)
+const initWebSocket = () => {
+    if (window.WebSocket) {
+        const wsUrl = 'wss://app.parsen.com.cn/ParsenHttpApiV030/com/finder/ReflashNodeDataListener'
+        ws.value = new WebSocket(wsUrl)
+        ws.value.onopen = (event: any) => {
+            console.log('onopen', event)
+        }
+        ws.value.onmessage = (event: any) => {
+            console.log('onmessage', event)
+            let data: any = null
+            try {
+                data = JSON.parse(event.data)
+                // 整合点击节点后请求到的数据[ ...list ]
+                for (let i of data.node_update_list) {
+                    for (let j in curCheckData.value) {
+                        if (i.node_id === curCheckData.value[j].node_id) {
+                            curCheckData.value[j] = i
+                        }
+                    }
+                }
+                // 点击节点后请求到的数据{ id: list }
+                for (let i of data.node_update_list) {
+                    for (let j of checkData) {
+                        const index = j.findIndex((k: any) => k.node_id === i.node_id)
+                        console.log(index)
+                        if (index > -1) j.splice(index, 1, i)
+                    }
+                }
+                emit('getNodeClickData', {
+                    curCheckData,
+                    alarmCount,
+                    project: saveData.value.project,
+                    saveData
+                })
+                // 请求过的节点[id]
+                nodeCheckedId.value = []
+                companyTreeNodeCheck(saveData.value.project, saveData.value.check)
+            } catch (e) {
+                console.error(e)
+            }
+        }
+    }
+}
+
+onMounted(() => {
+    initWebSocket()
+})
+
+onBeforeUnmount(() => {
+    ws.value.close()
+})
 
 // 更新checkData列表数据
 const updateCheckData = async (project: any) => {
@@ -215,7 +231,7 @@ const updateCheckData = async (project: any) => {
     checkData[project.id] = res.node_list
     // 更新当前点击数量的总数 []
     curCheckData.value = []
-    for (let item of curNodeCheckId.value) {
+    for (let item of curNodeCheckedId.value) {
         curCheckData.value.push(...checkData[item])
     }
     loading.value = false
@@ -262,7 +278,12 @@ const companyTree: any = ref(null)
 
 // 刷新后将已存储的节点再赋值回去
 const setTreeSelectNode = (value: any) => {
-    if (!localStorage.getItem(value)) return
+    if (
+        !localStorage.getItem(value) ||
+        localStorage.getItem(value) === 'undefined' ||
+        localStorage.getItem(value) === 'null'
+    )
+        return
     const saveData = JSON.parse(localStorage.getItem(value) as any)
     companyTreeNodeCheck(saveData.project, saveData.check)
 }
