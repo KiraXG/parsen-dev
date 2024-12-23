@@ -18,7 +18,7 @@ const useUserStore = defineStore('User', {
         return {
             token: '', // 用户token
             userInfo: {}, // 当前用户信息
-            menuList: constantRoutes, // 菜单列表
+            menuList: [], // 菜单列表
             activeMenu: '', //当前激活菜单的index
             editableTabsValue: '', //绑定值，选中选项卡的name
             editableTabs: [], //tab标签选项卡内容
@@ -34,6 +34,18 @@ const useUserStore = defineStore('User', {
             // 存储用户的token
             this.token = res.access_token
             this.userInfo = res.company as companyType
+            // 根据不同的角色赋予不同的菜单权限
+            const showNodeList =
+                this.userInfo.company_id == '1' || this.userInfo.manage_company == '1'
+            const showProjectList =
+                this.userInfo.company_id == '1' ||
+                this.userInfo.manage_company == '1' ||
+                this.userInfo.manage_node == '1'
+            const showManager =
+                this.userInfo.company_id == '1' ||
+                this.userInfo.manage_company == '1' ||
+                this.userInfo.manage_node == '1'
+            this.menuList = constantRoutes(showNodeList, showProjectList, showManager)
         },
         /**
          * 修改state中数据的方法

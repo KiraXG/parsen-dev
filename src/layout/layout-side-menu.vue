@@ -1,7 +1,12 @@
 <template>
     <template v-for="item in menuList">
         <!-- 没有子级菜单 -->
-        <el-menu-item v-if="!item.children" :index="item.path" :disabled="item.meta.disabled" @click="userStore.addTab(item)">
+        <el-menu-item
+            v-if="!item.children && item.meta.show"
+            :index="item.path"
+            :disabled="item.meta.disabled"
+            @click="userStore.addTab(item)"
+        >
             <!-- 图标 -->
             <el-icon>
                 <component :is="item.meta.icon" />
@@ -12,7 +17,10 @@
             </template>
         </el-menu-item>
         <!-- 有子级菜单 -->
-        <el-sub-menu v-if="item.children && item.children.length" :index="item.path">
+        <el-sub-menu
+            v-if="item.children && item.children.length && item.meta.show"
+            :index="item.path"
+        >
             <template #title>
                 <el-icon>
                     <component :is="item.meta.icon" />

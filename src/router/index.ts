@@ -1,13 +1,15 @@
 // 引入createRouter
+import useUserStore from '@/store/modules/user'
 import { createRouter, createWebHistory } from 'vue-router'
 import { constantRoutes } from './routes'
-import useUserStore from '@/store/modules/user'
+
+export const routes = constantRoutes()
 
 const scrollRouter: any = {}
 // 创建路由器
 const router = createRouter({
     history: createWebHistory(), // history模式
-    routes: [...constantRoutes],
+    routes: [...routes],
     // 滚动行为
     scrollBehavior(to, from, _savedPosition) {
         let el = document.querySelector('.container') as any
@@ -92,7 +94,7 @@ router.beforeEach((to, _from, next) => {
         next('/404')
     } else {
         //使用pinia里面的全局状态属性
-        const store: any = useUserStore()
+        const store = useUserStore()
         //更改tab标签绑定值，选中选项卡的name
         store.updateState(['editableTabsValue', to.path])
         //更改当前激活的菜单
