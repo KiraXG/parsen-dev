@@ -1,1 +1,8 @@
-$red: red;
+$var-tree-table-left-width: 260px;
+$var-tree-table-left-padding: 10px 0 5px 0;
+$var-tree-table-left-border: 1px rgba(0, 0, 0, 0.1) solid;
+$var-tree-table-left-border-radius: 5px;
+
+$var-resize-width: 4px;
+
+$var-tree-table-right-width: calc(100% - $var-tree-table-left-width - $var-resize-width);

@@ -1,6 +1,14 @@
 .el-input,
 .el-button {
-    height: 36px;
+    height: 34px;
+}
+
+.el-button--small {
+    height: 26px !important;
+}
+
+.el-button--large {
+    height: 42px !important;
 }
 
 .el-button.is-link {
@@ -8,7 +16,7 @@
 }
 
 .el-button.is-circle {
-    width: 36px;
+    width: 34px;
 }
 
 // 菜单设值

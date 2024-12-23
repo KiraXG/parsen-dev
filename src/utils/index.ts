@@ -26,6 +26,16 @@ export const formatDate = (date?: any, format?: any, value: any = 0, type: any =
     return dayjs(date).subtract(value, type).format(format)
 }
 
+// 格式化为一天的开始
+export const startDateTime = (date?: any) => {
+    return new Date(dayjs(date).format('YYYY-MM-DD') + ' 00:00:00')
+}
+
+// 格式化为一天的结束
+export const endDateTime = (date?: any) => {
+    return new Date(dayjs(date).format('YYYY-MM-DD') + ' 23:59:59')
+}
+
 // tag 类型
 export const tagTypes = ['primary', 'success', 'warning', 'info', 'danger']
 
@@ -36,6 +46,53 @@ export const fontSize = (font: any) => {
     if (!clientWidth) return
     let fontSize = clientWidth / 1920
     return font * fontSize
+}
+
+export const dragControllerDiv = (
+    leftClassName: string,
+    rightClassName: string,
+    containerClassName: string,
+    isCollapse: boolean = false
+) => {
+    let resize: any = document.getElementsByClassName('resize')
+    let left: any = document.getElementsByClassName(leftClassName)
+    let mid: any = document.getElementsByClassName(rightClassName)
+    let box: any = document.getElementsByClassName(containerClassName)
+    for (let i = 0; i < resize.length; i++) {
+        // 鼠标按下事件
+        resize[i].onmousedown = function (e: any) {
+            //颜色改变提醒
+            resize[i].style.background = '#e9e9e9'
+            let startX = e.clientX
+            resize[i].left = resize[i].offsetLeft - (!isCollapse ? 217 : 81)
+            // 鼠标拖动事件
+            document.onmousemove = (e) => {
+                let endX = e.clientX
+                let moveLen = resize[i].left + (endX - startX) // （endx-startx）=移动的距离。resize[i].left+移动的距离=左边区域最后的宽度
+                let maxT = box[i].clientWidth - resize[i].offsetWidth // 容器宽度 - 左边区域的宽度 = 右边区域的宽度
+
+                if (moveLen < 200) moveLen = 200 // 左边区域的最小宽度为32px
+                if (moveLen > maxT - 700) moveLen = maxT - 700 //右边区域最小宽度为150px
+
+                resize[i].style.left = moveLen // 设置左侧区域的宽度
+
+                for (let j = 0; j < left.length; j++) {
+                    left[j].style.width = moveLen + 'px'
+                    mid[j].style.width = box[i].clientWidth - moveLen - 10 + 'px'
+                }
+            }
+            // 鼠标松开事件
+            document.onmouseup = () => {
+                //颜色恢复
+                resize[i].style.background = '#ffffff'
+                document.onmousemove = null
+                document.onmouseup = null
+                resize[i].releaseCapture && resize[i].releaseCapture() //当你不在需要继续获得鼠标消息就要应该调用ReleaseCapture()释放掉
+            }
+            resize[i].setCapture && resize[i].setCapture() //该函数在属于当前线程的指定窗口里设置鼠标捕获
+            return false
+        }
+    }
 }
 
 // 黄熙使用的数值单位对照表,2022-02-24 确认过
@@ -163,7 +220,13 @@ export const gdMapXYConvertorEx = (AMap: any, lbsList: any, xyHandler: any) => {
 }
 
 // 导出excel表格
-export const exportExcel = (fileName: any, sheetData: any, fieldLists: any, columnWidths?: any, sheetName?: any) => {
+export const exportExcel = (
+    fileName: any,
+    sheetData: any,
+    fieldLists: any,
+    columnWidths?: any,
+    sheetName?: any
+) => {
     const option: any = {}
     const sheetHeader: any = [] // 第一行 label
     const sheetFilter: any = [] // 列过滤 key

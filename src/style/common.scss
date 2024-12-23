@@ -10,8 +10,8 @@ body {
 
 // 自定义滚动条整体样式
 ::-webkit-scrollbar {
-    width: 10px; // 设置滚动条的宽度
-    height: 10px; // 设置滚动条的高度
+    width: 8px; // 设置滚动条的宽度
+    height: 8px; // 设置滚动条的高度
 }
 
 // 自定义滚动条轨道样式
@@ -21,12 +21,13 @@ body {
 
 // 自定义滚动条滑块样式
 ::-webkit-scrollbar-thumb {
-    background-color: rgb(221, 221, 221); // 设置滑块的颜色
+    background-color: #90939940; // 设置滑块的颜色
     border-radius: 5px; // 设置滑块的圆角
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background-color: rgb(172, 172, 172); // 设置鼠标放在滑块上的颜色
+    background-color: #90939980; // 设置鼠标放在滑块上的颜色
+    cursor: pointer;
 }
 
 /* custom card */
@@ -40,34 +41,105 @@ body {
     box-shadow: 0 0 12px rgb(0 0 0 / 5%);
 }
 
-.table-box,
-.table-main {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
+.ps-search-table {
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: column;
 
-    // 表格 header 样式
-    .table-header {
-        .header-button-lf {
+    .table-search {
+        padding: 18px 18px 0;
+        margin-bottom: 5px;
+
+        .operation {
             display: flex;
-            flex-wrap: wrap;
-            gap: 15px 12px;
-            margin-bottom: 15px;
-            float: left;
-            .el-button:not(.el-input .el-button) {
-                margin-left: 0;
-            }
+            align-items: center;
+            justify-content: flex-end;
+            margin-bottom: 18px;
         }
     }
 
-    .table-selected {
+    .table-box,
+    .table-main {
         display: flex;
-        align-items: center;
-        margin-bottom: 10px;
-        .selected-detail {
-            color: #4099ff;
+        flex: 1;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+
+        // 表格 header 样式
+        .table-header {
+            .header-button-lf {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 15px 12px;
+                margin-bottom: 15px;
+                float: left;
+
+                .el-button:not(.el-input .el-button) {
+                    margin-left: 0;
+                }
+            }
         }
+
+        .table-selected {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+
+            .selected-detail {
+                color: #4099ff;
+            }
+        }
+    }
+}
+
+// companyTree
+.companyTree {
+    padding: $var-tree-table-left-padding;
+    border: $var-tree-table-left-border;
+    border-radius: $var-tree-table-left-border-radius;
+    box-sizing: border-box;
+}
+
+// 左树右表布局
+.tree-table-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    .tree-table-left {
+        width: $var-tree-table-left-width;
+        display: flex;
+        flex-direction: column;
+
+        .filter-input {
+            flex: 0 0 34px;
+            margin-bottom: 5px;
+        }
+    }
+
+    // 拖拽改变左右大小
+    .resize {
+        width: $var-resize-width;
+        height: 100%;
+
+        .drag-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+    }
+
+    .resize:hover {
+        background: #e9e9e9;
+        cursor: ew-resize;
+    }
+
+    .tree-table-right {
+        width: $var-tree-table-right-width;
+        height: 100%;
     }
 }

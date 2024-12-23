@@ -19,12 +19,14 @@
     "element-plus": "^2.8.7",
     "js-export-excel": "^1.1.4",
     "pinia": "^2.2.6",
+    "qs": "^6.13.1",
     "sass": "^1.80.6",
     "vue": "^3.5.12",
     "vue-axios": "^3.5.2",
     "vue-router": "^4.4.5"
   },
   "devDependencies": {
+    "@types/qs": "^6.9.17",
     "@vitejs/plugin-vue": "^5.1.4",
     "@vitejs/plugin-vue-jsx": "^4.1.1",
     "eslint": "^9.14.0",

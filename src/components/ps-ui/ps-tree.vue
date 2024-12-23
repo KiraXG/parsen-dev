@@ -132,7 +132,9 @@ watch(_filterText, (val) => {
 })
 
 const setTreeSelectNode = (val: any) => {
-    treeRef.value!.setCheckedKeys(val)
+    setTimeout(() => {
+        treeRef.value!.setCheckedNodes(val)
+    }, 500)
 }
 
 defineExpose({

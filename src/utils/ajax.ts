@@ -3,6 +3,7 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import useUserStore from '@/store/modules/user'
 import router from '@/router'
+// import { AxiosCanceler } from './axiosCancel'
 
 // 使用axios对象的create方法，创建axios实例
 const ajax = axios.create({
@@ -14,6 +15,9 @@ const ajax = axios.create({
     }
 })
 
+// 取消 axios 请求
+// const axiosCanceler = new AxiosCanceler()
+
 // request实例添加请求与响应拦截器
 ajax.interceptors.request.use(
     (config: any) => {
@@ -24,6 +28,8 @@ ajax.interceptors.request.use(
         }
         // 获取用户相关的小仓库:获取仓库内部token，登录成功以后携带给服务器
         const userStore = useUserStore()
+        // config.cancel ??= true
+        // config.cancel && axiosCanceler.addPending(config)
         if (userStore.token) {
             config.headers.token = userStore.token
         }
@@ -41,6 +47,7 @@ ajax.interceptors.response.use(
     (response: any) => {
         // 返回200也分正确和错误信息
         // result为1时正确，0为有错误参数
+        // axiosCanceler.removePending(response.config)
         if (response.data.result == '0') {
             if (response.data.err_msg.includes('重新登录')) router.replace('/login')
             // 出错时在提示并在控制台输出错误信息

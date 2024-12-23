@@ -1,5 +1,5 @@
 <template>
-    <div class="card table-search" v-if="searchFields.length">
+    <div v-if="searchFields.length">
         <el-form :mode="searchParams" :label-width="labelWidth" @submit.native.prevent="search">
             <el-row>
                 <!-- 1、一个col一共24份，按8份划分成一组，传1个span就是一组，也就是8份;
@@ -116,15 +116,4 @@ const operateSpan = computed(() => {
 })
 </script>
 
-<style lang="scss" scoped>
-.table-search {
-    padding: 18px 18px 0;
-    margin-bottom: 5px;
-    .operation {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        margin-bottom: 18px;
-    }
-}
-</style>
+<style lang="scss" scoped></style>

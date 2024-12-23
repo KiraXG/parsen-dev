@@ -45,7 +45,7 @@ export default defineConfig(({ command }): any => {  // command用于获取当�
         scss: {
           javascriptEnabled: true,
           silenceDeprecations: ["legacy-js-api"],
-          additionalData: '@use "./src/style/variable.scss";'
+          additionalData: '@import "@/style/variable.scss";'
         }
       }
     },
