@@ -1,24 +1,22 @@
 <template>
-    <div style="height: calc(100% - 140px)">
-        <ps-search-table
-            rowKey="node_id"
-            :border="true"
-            :loading="loading"
-            :fieldLists="fieldLists"
-            :tableData="tableData"
-            @getCurTableData="getCurTableData"
-        >
-            <!-- 表格上方按钮 -->
-            <template #tableHeader>
-                <el-button type="primary" @click="allUpdate">全部更新</el-button>
-                <el-button @click="outputList">导出</el-button>
-            </template>
-            <!-- 上传时间 -->
-            <template #last_date="{ row }">
-                {{ row.last_date ? formatDate(row.last_date, 'YYYY-MM-DD HH:mm:ss') : '- -' }}
-            </template>
-        </ps-search-table>
-    </div>
+    <ps-search-table
+        rowKey="node_id"
+        :border="true"
+        :loading="loading"
+        :fieldLists="fieldLists"
+        :tableData="tableData"
+        @getCurTableData="getCurTableData"
+    >
+        <!-- 表格上方按钮 -->
+        <template #tableHeader>
+            <el-button type="primary" @click="allUpdate">全部更新</el-button>
+            <el-button @click="outputList">导出</el-button>
+        </template>
+        <!-- 上传时间 -->
+        <template #last_date="{ row }">
+            {{ row.last_date ? formatDate(row.last_date, 'YYYY-MM-DD HH:mm:ss') : '- -' }}
+        </template>
+    </ps-search-table>
 </template>
 
 <script setup lang="ts">
@@ -74,7 +72,7 @@ const getCurTableData = (params: any) => {
 // 导出按钮
 const outputList = () => {
     const listData: any = []
-    tableData.value.forEach((item: any) => {
+    curTableData.value.forEach((item: any) => {
         listData.push({
             imei: item.imei || '',
             iccid: item.iccid || '',
@@ -89,7 +87,7 @@ const outputList = () => {
         })
     })
     const fileName = `SIM卡列表_${formatDate(new Date(), 'YYYY-MM-DD HH:mm:ss')}`
-    const excelCellWidth = [8, 9, 8, 3, 3, 3, 5, 5, 5, 9]
+    const excelCellWidth = [8, 9, 8, 6, 3, 3, 5, 5, 5, 9]
     exportExcel(fileName, listData, fieldLists, excelCellWidth)
 }
 
@@ -104,6 +102,96 @@ const allUpdate = async () => {
     }
 }
 
+// 预设时间
+const shortcutsBefore = [
+    {
+        text: '【今天之前】',
+        value: () => {
+            return
+        }
+    },
+    {
+        text: '1个月内',
+        value: () => {
+            const end = new Date()
+            const start = new Date()
+            start.setMonth(start.getMonth() - 1)
+            return [start, end]
+        }
+    },
+    {
+        text: '3个月内',
+        value: () => {
+            const end = new Date()
+            const start = new Date()
+            start.setMonth(start.getMonth() - 3)
+            return [start, end]
+        }
+    },
+    {
+        text: '6个月内',
+        value: () => {
+            const end = new Date()
+            const start = new Date()
+            start.setMonth(start.getMonth() - 6)
+            return [start, end]
+        }
+    },
+    {
+        text: '一年内',
+        value: () => {
+            const end = new Date()
+            const start = new Date()
+            start.setMonth(start.getMonth() - 12)
+            return [start, end]
+        }
+    }
+]
+const shortcutsAfter = [
+    {
+        text: '【今天之后】',
+        value: () => {
+            return
+        }
+    },
+    {
+        text: '1个月内',
+        value: () => {
+            const end = new Date()
+            const start = new Date()
+            end.setMonth(start.getMonth() + 1)
+            return [start, end]
+        }
+    },
+    {
+        text: '3个月内',
+        value: () => {
+            const end = new Date()
+            const start = new Date()
+            end.setMonth(start.getMonth() + 3)
+            return [start, end]
+        }
+    },
+    {
+        text: '6个月内',
+        value: () => {
+            const end = new Date()
+            const start = new Date()
+            end.setMonth(start.getMonth() + 6)
+            return [start, end]
+        }
+    },
+    {
+        text: '一年内',
+        value: () => {
+            const end = new Date()
+            const start = new Date()
+            end.setMonth(start.getMonth() + 12)
+            return [start, end]
+        }
+    }
+]
+
 // 表格column
 const fieldLists = ref([
     {
@@ -113,7 +201,6 @@ const fieldLists = ref([
             type: 'input',
             span: 1
         },
-        sortable: true,
         minWidth: 160
     },
     {
@@ -123,7 +210,6 @@ const fieldLists = ref([
             type: 'input',
             span: 1
         },
-        sortable: true,
         minWidth: 200
     },
     {
@@ -162,7 +248,11 @@ const fieldLists = ref([
     {
         label: '到期日',
         prop: 'expiry_date',
-        minWidth: 100
+        hasFilter: true,
+        filterType: 'daterange',
+        shortcuts: shortcutsAfter,
+        sortable: 'custom',
+        minWidth: 115
     },
     {
         label: '剩余流量(MB)',
@@ -172,6 +262,10 @@ const fieldLists = ref([
     {
         label: '上传时间',
         prop: 'last_date',
+        hasFilter: true,
+        filterType: 'daterange',
+        shortcuts: shortcutsBefore,
+        sortable: 'custom',
         minWidth: 160
     }
 ])
