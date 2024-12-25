@@ -92,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch, onActivated } from 'vue'
 import CompanyTree from '@/components/company-tree/index.vue'
 import { alarmOption } from './realTimeData-echarts'
 import { formatDate, translateUnitDesp, tagTypes, exportExcel } from '@/utils'
@@ -126,6 +126,11 @@ onMounted(() => {
     if (localStorage.getItem(routerName)) {
         companyTree.value.setTreeSelectNode(routerName)
     }
+})
+
+// 跳到该页面时要用
+onActivated(() => {
+    draw()
 })
 
 // 加载样式

@@ -1,6 +1,6 @@
 // 引入createRouter
 import useUserStore from '@/store/modules/user'
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import { constantRoutes } from './routes'
 
 export const routes = constantRoutes()
@@ -8,7 +8,7 @@ export const routes = constantRoutes()
 const scrollRouter: any = {}
 // 创建路由器
 const router = createRouter({
-    history: createWebHistory(), // history模式
+    history: createWebHashHistory(), // history模式
     routes: [...routes],
     // 滚动行为
     scrollBehavior(to, from, _savedPosition) {

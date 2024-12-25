@@ -39,7 +39,7 @@
 
 <script setup lang="ts">
 import CompanyTree from '@/components/company-tree/index.vue'
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, watch, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import useSettingStore from '@/store/modules/setting'
 import * as echarts from 'echarts'
@@ -71,6 +71,11 @@ const getHomeEchartsCount = (val: any) => {
     companyCount.value = val.companyCount.value
     itemCount.value = val.itemCount.value
 }
+
+// 跳到该页面时要用
+onActivated(() => {
+    draw()
+})
 
 const $router = useRouter() // 路由名称
 const routerName: any = $router.currentRoute.value.name

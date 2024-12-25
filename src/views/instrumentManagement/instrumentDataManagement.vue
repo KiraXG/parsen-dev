@@ -85,11 +85,11 @@
                         </el-popconfirm>
                     </div>
                     <div>
-                        <el-button type="danger" icon="Odometer" link @click="offsetAndZero(row)"
+                        <el-button type="warning" icon="Odometer" link @click="offsetAndZero(row)"
                             >对表调零</el-button
                         >
                         <el-button
-                            type="danger"
+                            type="primary"
                             icon="EditPen"
                             link
                             @click="updateImei(row)"
