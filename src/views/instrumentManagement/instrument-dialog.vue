@@ -411,11 +411,12 @@ const confirm = () => {
                 access_token: userStore.token,
                 node_id: props.rowData.node_id,
                 main_param: JSON.stringify({
-                    node_name: props.rowData.node_name,
-                    group: props.rowData.group,
-                    node_tel: props.rowData.node_tel,
-                    sample_gap: props.rowData.sample_gap,
-                    send_gap: props.rowData.send_gap
+                    node_name: curFormData.value.node_name,
+                    group: curFormData.value.group,
+                    node_tel: curFormData.value.node_tel,
+                    sample_gap: curFormData.value.sample_gap,
+                    send_gap: curFormData.value.send_gap,
+                    imei: curFormData.value.imei
                 }),
                 line_params: JSON.stringify(lineParams)
             }

@@ -243,6 +243,7 @@ import { ref, reactive, computed, watch } from 'vue'
 import type { TableInstance } from 'element-plus'
 import { dayjs } from 'element-plus'
 import { startDateTime, endDateTime } from '@/utils'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
     // 列表
@@ -375,6 +376,10 @@ const closePopover = (property?: any) => {
     }
 }
 
+// 路由名称
+const $router = useRouter()
+const routerName: any = $router.currentRoute.value.name
+
 // 搜索
 const search = (val?: any) => {
     closePopover()
@@ -393,6 +398,8 @@ const search = (val?: any) => {
         // 整合search栏搜索参数 + 真正参与查询的表头过滤参数
         curSearchParams.value = Object.assign(searchParams.value, realFilterParams.value)
     }
+    // 存储搜索数据
+    sessionStorage.setItem(`${routerName}_search`, JSON.stringify(curSearchParams.value))
     // 筛选数据
     curTableData.value = _tableData.value
     for (let i in curSearchParams.value) {
@@ -536,6 +543,11 @@ const handleSizeChange = (val: any) => {
     _pageConfig.pageSize = val
 }
 // #endregion ********* end 分页 **********
+
+// 向父组件暴露方法
+defineExpose({
+    search
+})
 </script>
 
 <style lang="scss" scoped>

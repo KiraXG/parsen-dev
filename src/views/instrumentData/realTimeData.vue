@@ -21,11 +21,13 @@
         </div>
         <div class="tree-table-right realTimeData-right">
             <ps-search-table
+                ref="ps_table"
                 rowKey="node_id"
                 :loading="loading"
                 :border="true"
                 :fieldLists="fieldLists"
                 :tableData="_tableData"
+                :pageConfig="pageConfig"
             >
                 <template #tableHeader>
                     <el-button type="primary" @click="outputList">导出</el-button>
@@ -44,11 +46,7 @@
                 <template #node_data="{ row }">
                     <div v-if="row.node_data">
                         <div>
-                            时间：{{
-                                row.node_data?.date
-                                    ? formatDate(row.node_data.date)
-                                    : '- -'
-                            }}
+                            时间：{{ row.node_data?.date ? formatDate(row.node_data.date) : '- -' }}
                         </div>
                         <div class="tag-container">
                             <el-tag
@@ -110,6 +108,12 @@ const alarmCount: any = ref(0) // 仪表总数
 // 路由名称
 const $router = useRouter()
 const routerName: any = $router.currentRoute.value.name
+
+const ps_table: any = ref(null)
+const pageConfig: any = ref({
+    pageNum: 1,
+    pageSize: 10
+})
 // 点击树的多选框传过来的数据
 const getNodeClickData = (params: any) => {
     // 存储已选择的节点
@@ -117,6 +121,15 @@ const getNodeClickData = (params: any) => {
     curCheckData.value = params.curCheckData.value
     alarmCount.value = params.alarmCount.value
     setTableData(curCheckData)
+    // websocket更新数据后再搜索回到原来查询的页面
+    if (params.wsRefresh && sessionStorage.getItem(`${routerName}_search`)) {
+        const searchParams: any = {
+            searchParams: ref(JSON.parse(sessionStorage.getItem(`${routerName}_search`) as any))
+        }
+        setTimeout(() => {
+            ps_table.value.search(searchParams)
+        })
+    }
     draw()
 }
 
@@ -124,7 +137,9 @@ const companyTree: any = ref(null)
 onMounted(() => {
     // 刷新后将已存储的节点再赋值回去
     if (localStorage.getItem(routerName)) {
-        companyTree.value.setTreeSelectNode(routerName)
+        setTimeout(() => {
+            companyTree.value.setTreeSelectNode(routerName)
+        }, 500)
     }
 })
 
@@ -168,7 +183,7 @@ const draw = () => {
         { name: '正常', value: alarmCount.value - getAlarmCount() },
         { name: '异常', value: getAlarmCount() }
     ]
-    chartsDom.value.setOption(alarmOption(alarm))
+    chartsDom.value?.setOption(alarmOption(alarm))
 }
 // #endregion ********** end 处理echarts图表 **********
 
@@ -189,10 +204,7 @@ const outputList = () => {
             imei: item.imei || '',
             group: item.group || '',
             iccid: item.iccid || '',
-            node_data:
-                node_data && node_data.date
-                    ? formatDate(node_data.date)
-                    : '',
+            node_data: node_data && node_data.date ? formatDate(node_data.date) : '',
             state:
                 (now - +new Date(node_data.date)) / 1000 / 60 > item['send_gap'] * 3
                     ? '离线'

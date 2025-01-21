@@ -53,6 +53,12 @@
                                 :value="col.value"
                             ></component>
                         </template>
+                        <template #prepend v-if="item.prepend">
+                            <slot>{{ item.prepend }}</slot>
+                        </template>
+                        <template #append v-if="item.append">
+                            <slot>{{ item.append }}</slot>
+                        </template>
                     </component>
                     <span v-else>{{ item.prop }}</span>
                 </slot>

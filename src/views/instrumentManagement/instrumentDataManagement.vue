@@ -25,7 +25,7 @@
                 :loading="loading"
                 :border="true"
                 :fieldLists="fieldLists"
-                :tableData="_tableData"
+                :tableData="tableData"
             >
                 <template #tableHeader>
                     <el-button icon="CirclePlus" type="primary" @click="addInstrumentToProject">{{
@@ -115,7 +115,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, watch, onMounted } from 'vue'
 import CompanyTree from '@/components/company-tree/index.vue'
 import { UNIT_TABLE, tagTypes } from '@/utils'
 import { deleteNode, showControl } from '@/api/instrumentManagement'
@@ -133,6 +133,7 @@ const userStore = useUserStore()
 const curCheckData: any = ref([]) // 当前点击节点的project总数
 const curCheckNodeData: any = ref({}) // 当前点击节点的project
 const curProject: any = ref({}) // 当前点击节点的project名称
+const saveData: any = ref({}) // 当前点击节点的project名称
 
 // 路由名称
 const $router = useRouter()
@@ -143,6 +144,7 @@ const getNodeClickData = (params: any) => {
     if (params.saveData) localStorage.setItem(routerName, JSON.stringify(params.saveData.value))
     curCheckData.value = params.curCheckData.value
     curProject.value = params.project
+    saveData.value = params.saveData.value
     setTableData(curCheckData)
 }
 
@@ -163,16 +165,18 @@ watch(
 
 const companyTree: any = ref(null) // 包含子组件暴露的方法
 onMounted(() => {
+    // 刷新后将已存储的节点再赋值回去
+    if (localStorage.getItem(routerName)) {
+        setTimeout(() => {
+            companyTree.value.setTreeSelectNode(routerName)
+        }, 500)
+    }
     dragControllerDiv(
         'instrumentDataManagement-left',
         'instrumentDataManagement-right',
         'instrumentDataManagement-container',
         settingStore.isCollapse
     )
-    // 刷新后将已存储的节点再赋值回去
-    if (localStorage.getItem(routerName)) {
-        companyTree.value.setTreeSelectNode(routerName)
-    }
 })
 
 // 更新后树的多选框传过来的数据
@@ -273,11 +277,13 @@ const editField = reactive([
     {
         label: '采样周期',
         prop: 'sample_gap',
+        append: '秒',
         type: 'input'
     },
     {
         label: '上传周期',
         prop: 'send_gap',
+        append: '分',
         type: 'input'
     },
     {
@@ -365,14 +371,14 @@ const handleDelete = (row: any) => {
         node_id: row.node_id
     }
     deleteNode(params).then(() => {
-        if (companyTree.value) companyTree.value.updateCheckData(curProject.value)
+        if (companyTree.value) companyTree.value.companyTreeNodeCheckWebsocket(saveData.value.project, saveData.value.check)
         ElMessage.success('删除成功')
     })
 }
 
 // 提交成功后重置参数
 const confirm = () => {
-    if (companyTree.value) companyTree.value.updateCheckData(curProject.value)
+    if (companyTree.value) companyTree.value.companyTreeNodeCheckWebsocket(saveData.value.project, saveData.value.check)
     closeDialog()
 }
 
@@ -391,7 +397,6 @@ const tableData: any = ref([])
 const setTableData = (data: any) => {
     tableData.value = data.value
 }
-const _tableData = computed(() => tableData.value)
 
 // 表格column
 const fieldLists = reactive([
@@ -403,10 +408,6 @@ const fieldLists = reactive([
     {
         label: '仪表名称',
         prop: 'node_name',
-        search: {
-            type: 'input',
-            span: 1
-        },
         minWidth: 200
     },
     {
@@ -422,6 +423,10 @@ const fieldLists = reactive([
     {
         label: '工位号',
         prop: 'group',
+        search: {
+            type: 'input',
+            span: 1
+        },
         minWidth: 100
     },
     {
