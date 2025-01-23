@@ -383,7 +383,7 @@ const routerName: any = $router.currentRoute.value.name
 // 搜索
 const search = (val?: any) => {
     closePopover()
-    tableLoading.value = true
+    // tableLoading.value = true
     if (val && val.searchParams) {
         // search栏搜索参数
         searchParams.value = val.searchParams.value
@@ -422,9 +422,9 @@ const search = (val?: any) => {
             }
         }
     }
-    setTimeout(() => {
-        tableLoading.value = false
-    }, 500)
+    // setTimeout(() => {
+    //     tableLoading.value = false
+    // }, 500)
 }
 
 // 重置

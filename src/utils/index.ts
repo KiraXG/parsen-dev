@@ -23,7 +23,9 @@ export const getTime = () => {
 
 // 格式化时间
 export const formatDate = (date?: any, format?: any, value: any = 0, type: any = 'day') => {
-    return dayjs(date).subtract(value, type).format(format || 'YYYY-MM-DD HH:mm:ss')
+    return dayjs(date)
+        .subtract(value, type)
+        .format(format || 'YYYY-MM-DD HH:mm:ss')
 }
 
 // 格式化为一天的开始
@@ -976,4 +978,15 @@ export const ExtGraphDrawing = {
             return tonne
         }
     }
+}
+
+export const alarmMask = {
+    LO_ALARM_1_MASK: 0x0001,
+    HI_ALARM_1_MASK: 0x0002,
+    LO_ALARM_2_MASK: 0x0004,
+    HI_ALARM_2_MASK: 0x0008,
+    WIN_ALARM_1_MASK: 0x0010,
+    WIN_ALARM_2_MASK: 0x0020,
+    RISE_ALARM_MASK: 0x0040,
+    FALL_ALARM_MASK: 0x0080
 }

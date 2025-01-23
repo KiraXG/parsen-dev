@@ -197,7 +197,7 @@ import {
     setZero,
     displaceImei
 } from '@/api/instrumentManagement'
-import { UNIT_TABLE, PRESSURE_UNITS, transferToUnit } from '@/utils'
+import { UNIT_TABLE, PRESSURE_UNITS, transferToUnit, alarmMask } from '@/utils'
 
 const props = defineProps({
     // 打开弹窗
@@ -279,15 +279,16 @@ const open = () => {
                 is_cus_unit: lp.is_cus_unit == 0 ? false : true,
                 cus_unit: lp.cus_unit,
                 lo_alarm_1: lp.lo_alarm_1,
-                l1_open: (lp.alarm_switch & 0x0001) != 0 ? true : false,
+                l1_open: (lp.alarm_switch & alarmMask.LO_ALARM_1_MASK) != 0 ? true : false,
                 lo_recover_1: lp.lo_recover_1,
                 hi_alarm_1: lp.hi_alarm_1,
+                h1_open: (lp.alarm_switch & alarmMask.HI_ALARM_1_MASK) != 0 ? true : false,
                 hi_recover_1: lp.hi_recover_1,
                 lo_alarm_2: lp.lo_alarm_2,
-                l2_open: (lp.alarm_switch & 0x0004) != 0 ? true : false,
+                l2_open: (lp.alarm_switch & alarmMask.LO_ALARM_2_MASK) != 0 ? true : false,
                 lo_recover_2: lp.lo_recover_2,
                 hi_alarm_2: lp.hi_alarm_2,
-                h2_open: (lp.alarm_switch & 0x0008) != 0 ? true : false,
+                h2_open: (lp.alarm_switch & alarmMask.HI_ALARM_2_MASK) != 0 ? true : false,
                 hi_recover_2: lp.hi_recover_2
             })
             curLineDatas.value.push(data)

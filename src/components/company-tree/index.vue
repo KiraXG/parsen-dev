@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import {  getCompanysProjects } from '@/api/home'
+import { getCompanysProjects } from '@/api/home'
 import { ref, onBeforeUnmount, onMounted } from 'vue'
 import useUserStore from '@/store/modules/user'
 import useCompanyTreeStore from '@/store/modules/company-tree'

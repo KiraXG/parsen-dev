@@ -371,14 +371,22 @@ const handleDelete = (row: any) => {
         node_id: row.node_id
     }
     deleteNode(params).then(() => {
-        if (companyTree.value) companyTree.value.companyTreeNodeCheckWebsocket(saveData.value.project, saveData.value.check)
+        if (companyTree.value)
+            companyTree.value.companyTreeNodeCheckWebsocket(
+                saveData.value.project,
+                saveData.value.check
+            )
         ElMessage.success('删除成功')
     })
 }
 
 // 提交成功后重置参数
 const confirm = () => {
-    if (companyTree.value) companyTree.value.companyTreeNodeCheckWebsocket(saveData.value.project, saveData.value.check)
+    if (companyTree.value)
+        companyTree.value.companyTreeNodeCheckWebsocket(
+            saveData.value.project,
+            saveData.value.check
+        )
     closeDialog()
 }
 

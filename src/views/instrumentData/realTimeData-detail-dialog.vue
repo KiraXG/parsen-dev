@@ -29,11 +29,7 @@
                     <el-col :span="8">
                         <div class="card dialog-cell">
                             <span>最后更新时间:</span>
-                            {{
-                                rowData.node_data
-                                    ? formatDate(rowData.node_data.date)
-                                    : '- -'
-                            }}
+                            {{ rowData.node_data ? formatDate(rowData.node_data.date) : '- -' }}
                         </div>
                     </el-col>
                     <el-col :span="8">
