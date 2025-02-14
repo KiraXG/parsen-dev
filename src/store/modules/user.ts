@@ -22,7 +22,8 @@ const useUserStore = defineStore('User', {
             activeMenu: '', //当前激活菜单的index
             editableTabsValue: '', //绑定值，选中选项卡的name
             editableTabs: [], //tab标签选项卡内容
-            tabRouterList: [] //tab页路由地址及参数
+            tabRouterList: [], //tab页路由地址及参数
+            audioPlay: false
         }
     },
     // 处理逻辑的地方

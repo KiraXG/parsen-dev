@@ -33,6 +33,8 @@ import useUserStore from '@/store/modules/user'
 import { storeToRefs } from 'pinia'
 import useSettingStore from '@/store/modules/setting'
 
+import emitter from '@/utils/emitter'
+
 const userStore: any = useUserStore()
 
 // 过滤菜单
@@ -47,6 +49,9 @@ const menuCol = () => {
 
 // 点击更新选中的tab和menu
 function handleSelect(key: any) {
+    if (key === '/instrumentData/realTimeData') {
+        emitter.emit('audioPlay');
+    }
     userStore.updateState(['editableTabsValue', key])
     userStore.updateState(['activeMenu', key])
 }

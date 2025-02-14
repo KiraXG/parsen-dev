@@ -9,6 +9,7 @@ export interface userState {
     editableTabsValue: string
     editableTabs: object[]
     tabRouterList: object[]
+    audioPlay: boolean
 }
 
 // settingStore里state的数据类型

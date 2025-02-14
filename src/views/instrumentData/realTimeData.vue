@@ -6,7 +6,19 @@
                 @dataLoading="dataLoading"
                 @getNodeClickData="getNodeClickData"
             ></company-tree>
-            <el-button class="warning-button" @click="showDialogFunc">详细报警信息</el-button>
+            <el-badge
+                style="width: 100%"
+                :value="alarmData.length"
+                :hidden="[true, false][alarmData.length]"
+                :offset="[0, 5]"
+            >
+                <el-button
+                    class="warning-button"
+                    :class="{ flashAnimation }"
+                    @click="showAlarmDetail"
+                    >详细报警信息</el-button
+                >
+            </el-badge>
             <div id="alarm-preview" class="card alarm-preview"></div>
         </div>
         <div class="resize">
@@ -31,6 +43,12 @@
             >
                 <template #tableHeader>
                     <el-button type="primary" @click="outputList">导出</el-button>
+                    <div class="mutedSound">
+                        静音报警声：<el-switch
+                            v-model="mutedSound"
+                            @change="handleMutedSound()"
+                        ></el-switch>
+                    </div>
                 </template>
                 <!-- 仪表名称 -->
                 <template #node_name="{ row }">
@@ -68,42 +86,75 @@
                         @click="showInstrumentDetail(row)"
                         >仪表详情</el-button
                     >
-                    <el-button
-                        type="danger"
-                        icon="Calendar"
-                        link
-                        @click="showAlarmRecord(row)"
-                        style="margin-left: 6px"
-                        >报警记录</el-button
+                    <el-badge
+                        value="!!!"
+                        :hidden="[true, false][row.alarm_notice]"
+                        :offset="[10, 10]"
                     >
+                        <el-button
+                            type="danger"
+                            icon="Calendar"
+                            link
+                            @click="showAlarmRecord(row)"
+                            style="margin-left: 6px"
+                            >报警记录</el-button
+                        >
+                    </el-badge>
                 </template>
             </ps-search-table>
         </div>
     </div>
+    <audio :src="audioSrc" ref="audio" muted loop></audio>
+    <!-- 仪表详情 -->
     <realTimeData-detail-dialog
         :openDialog="openDialog"
         :dialogHeader="dialogHeader"
         :rowData="rowData"
         @close="closeDialog"
-    >
-    </realTimeData-detail-dialog>
+    ></realTimeData-detail-dialog>
+    <!-- 报警记录-单行 -->
+    <alarm-record-dialog
+        :openDialog="openAlarmDialog"
+        :dialogHeader="'最新报警'"
+        :rowData="alarmRowData"
+        @refresh="refresh"
+        @close="closeAlarmDialog"
+    ></alarm-record-dialog>
+    <!-- 报警记录汇总-最新 -->
+    <alarm-record-detail-dialog
+        :openDialog="openAlarmDetailDialog"
+        :alarmTableData="alarmData"
+        @refresh="refresh"
+        @close="closeAlarmDetailDialog"
+    ></alarm-record-detail-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch, onActivated } from 'vue'
+import { ref, reactive, computed, onMounted, watch, onActivated, onUnmounted } from 'vue'
 import CompanyTree from '@/components/company-tree/index.vue'
 import { alarmOption } from './realTimeData-echarts'
-import { formatDate, translateUnitDesp, tagTypes, exportExcel } from '@/utils'
+import {
+    formatDate,
+    translateUnit,
+    translateUnitDesp,
+    translateUnitDespSingle,
+    tagTypes,
+    exportExcel
+} from '@/utils'
 import * as echarts from 'echarts'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import RealTimeDataDetailDialog from './realTimeData-detail-dialog.vue'
+import AlarmRecordDialog from './alarmRecordDialog.vue'
+import AlarmRecordDetailDialog from './alarmRecordDetailDialog.vue'
 import useSettingStore from '@/store/modules/setting'
 import { dragControllerDiv } from '@/utils'
+import emitter from '@/utils/emitter'
 
 // #region ********** start 左侧树方法 **********
 const curCheckData: any = ref([]) // 当前点击节点的project总数
 const alarmCount: any = ref(0) // 仪表总数
+const curProject: any = ref({}) // 当前点击的节点数据
 
 // 路由名称
 const $router = useRouter()
@@ -120,7 +171,11 @@ const getNodeClickData = (params: any) => {
     if (params.saveData) localStorage.setItem(routerName, JSON.stringify(params.saveData.value))
     curCheckData.value = params.curCheckData.value
     alarmCount.value = params.alarmCount.value
+    curProject.value = params.project
     setTableData(curCheckData)
+    if (params.resCommand === 'end_node' || params.wsRefresh) {
+        setAlarmData(curCheckData)
+    }
     // websocket更新数据后再搜索回到原来查询的页面
     if (params.wsRefresh && sessionStorage.getItem(`${routerName}_search`)) {
         const searchParams: any = {
@@ -308,14 +363,13 @@ const tagType = (item: any) => {
 }
 // #endregion ********** end 处理表格数据 **********
 
-// #region ********** start 处理表弹窗表单数据 **********
+// #region ********** start 仪表详情弹窗 **********
 const dialogHeader: any = ref('') // 弹窗标题
 const rowData: any = ref({}) // 点击当前行的数据
 const openDialog: any = ref(false) // 打开弹窗
 
 // 仪表详情
 const showInstrumentDetail = (row: any) => {
-    console.log(row)
     if (!row.node_data) {
         ElMessage.error('没有数据可以查看！')
         return
@@ -325,18 +379,170 @@ const showInstrumentDetail = (row: any) => {
     openDialog.value = true
 }
 
-// 报警记录
-const showAlarmRecord = (row: any) => {
-    console.log(row)
-}
-
 // 关闭弹窗
 const closeDialog = () => {
     openDialog.value = false
     dialogHeader.value = ''
 }
+// #endregion ********** end 仪表详情弹窗 **********
 
-const showDialogFunc = () => {}
+// #region ********** start 报警记录-单行 **********
+const openAlarmDialog = ref(false)
+const alarmRowData = ref([])
+
+// 打开报警记录弹窗
+const showAlarmRecord = (row: any) => {
+    openAlarmDialog.value = true
+    alarmRowData.value = row
+}
+
+// 关闭报警记录弹窗
+const closeAlarmDialog = () => {
+    openAlarmDialog.value = false
+}
+// #endregion ********** end 报警记录-单行 **********
+
+// #region ********** start 报警记录汇总-最新 **********
+// 筛选带报警标识的数据
+const alarmData: any = ref([])
+const setAlarmData = (data: any) => {
+    const dataCopy = JSON.parse(JSON.stringify(data.value))
+    const _data = dataCopy.filter((item: any) => item.alarm_pop == '1')
+    let alarmMsg: any = {}
+    for (let i of _data) {
+        for (let j of i.node_data.line_datas) {
+            if (j.alarm_flag !== '0' || (i.alarm_pop == '1' && j.alarm_flag == '0')) {
+                const alarmFlagEx = Number(j.alarm_flag_ex)
+                const alarmFlag = Number(j.line_param.alarm_flag)
+
+                // 组装参数
+                alarmMsg = { ...i }
+                alarmMsg.alarmRowId = `${i.imei}${j.unit}` // 唯一标识
+                alarmMsg.curValue = translateUnitDespSingle(j)
+                alarmMsg.curDate = formatDate(j.date)
+                alarmMsg.paramType = translateUnit(j.unit, 'desc')
+                alarmMsg.alarmType = getState(alarmFlagEx, alarmFlag)
+
+                // 存在一样的就不添加
+                if (JSON.stringify(alarmData.value).includes(JSON.stringify(alarmMsg))) {
+                    continue
+                }
+
+                // imei号和参数类型一样的就更新
+                let index = alarmData.value.findIndex(
+                    (h: any) => h.imei == alarmMsg.imei && h.paramType == alarmMsg.paramType
+                )
+                if (index > -1) {
+                    alarmData.value.splice(index, 1, alarmMsg)
+                    continue
+                }
+                // 新的直接添加
+                alarmData.value.push(alarmMsg)
+                if (alarmData.length && !mutedSound.value) {
+                    audio.value.muted = false
+                    audio.value.play()
+                }
+            }
+        }
+    }
+}
+
+// 转义
+const flags = {
+    h_d2: 10,
+    h_2: 8,
+    h_1: 2,
+    l_d2: 5,
+    l_2: 4,
+    l_1: 1
+}
+const getState = (alarmEx: any, alarm: any) => {
+    if (0 != alarm) {
+        if (alarm == flags.h_d2 || alarm == flags.h_2) {
+            return '超出上限2报警'
+        } else if (alarm == flags.l_d2 || alarm == flags.l_2) {
+            return '低于下限2报警'
+        } else if (alarm == flags.h_1) {
+            return '超出上限1报警'
+        } else if (alarm == flags.l_1) {
+            return '低于下限1报警'
+        }
+    } else {
+        if (alarmEx != 0) {
+            return '恢复正常'
+        }
+    }
+}
+
+// 有报警的话就改变按钮的颜色
+const audio: any = ref(null) // 音频组件
+const flashAnimation: any = ref(false) // 闪烁动画
+const mutedSound: any = ref(false) // 静音报警声
+const audioSrc: any = new URL('@/assets/audio/alarm.mp3', import.meta.url).href
+watch(
+    alarmData,
+    (newVal) => {
+        if (newVal.length && !mutedSound.value) {
+            flashAnimation.value = true
+            audio.value.muted = false
+            audio.value.play()
+        } else {
+            flashAnimation.value = false
+            audio.value.muted = true
+        }
+    },
+    { deep: true }
+)
+
+// 打开/关闭报警声
+const handleMutedSound = () => {
+    if (mutedSound.value) {
+        audio.value.muted = true
+    } else if (!mutedSound.value && alarmData.value.length) {
+        audio.value.muted = false
+        audio.value.play()
+    }
+}
+
+// 点击菜单触发的音频事件
+onMounted(() => {
+    emitter.on('audioPlay', handleAudioPlay)
+})
+
+onUnmounted(() => {
+    emitter.off('audioPlay', handleAudioPlay)
+})
+
+// 处理报警声
+const handleAudioPlay = () => {
+    if (alarmData.value.length && !mutedSound.value) {
+        audio.value.muted = false
+        audio.value.play()
+    } else {
+        audio.value.muted = true
+    }
+}
+
+// 打开报警弹窗
+const openAlarmDetailDialog: any = ref(false) // 打开弹窗
+const showAlarmDetail = () => {
+    if (alarmData.value.length && !mutedSound.value) {
+        audio.value.muted = false
+        audio.value.play()
+    }
+    openAlarmDetailDialog.value = true
+}
+
+// 关闭报警弹窗
+const closeAlarmDetailDialog = () => {
+    openAlarmDetailDialog.value = false
+}
+
+// 取消报警后刷新列表
+const refresh = () => {
+    if (companyTree.value) companyTree.value.companyTreeNodeClick(curProject.value)
+}
+// #endregion ********** end 报警记录汇总-最新 **********
 
 // 拖拽改变容器大小
 const settingStore = useSettingStore()
@@ -365,6 +571,18 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.flashAnimation {
+    animation: flashAnimation 0.4s infinite alternate;
+    @keyframes flashAnimation {
+        0% {
+            background-color: #fff;
+        }
+
+        100% {
+            background-color: #f56c6c;
+        }
+    }
+}
 .realTimeData-container {
     .realTimeData-left {
         .filter-input {
@@ -388,6 +606,11 @@ onMounted(() => {
     }
 
     .realTimeData-right {
+        .mutedSound {
+            margin-left: 20px;
+            align-items: center;
+        }
+
         .withPic {
             display: flex;
             flex-direction: column;
