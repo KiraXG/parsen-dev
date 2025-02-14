@@ -27,10 +27,9 @@
                 <slot :name="item.prop" :formData="_formData[item.prop]" :formItem="item">
                     <component
                         v-if="item.type"
+                        v-bind="{ ...item }"
                         :is="`el-${item.type}`"
                         v-model.trim="_formData[item.prop]"
-                        :disabled="item.disabled"
-                        :size="size"
                         :data="item.type === 'tree-select' ? item.options : []"
                         :options="['cascader', 'select-v2'].includes(item.type) ? item.options : []"
                         clearable

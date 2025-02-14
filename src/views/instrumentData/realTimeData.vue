@@ -173,9 +173,7 @@ const getNodeClickData = (params: any) => {
     alarmCount.value = params.alarmCount.value
     curProject.value = params.project
     setTableData(curCheckData)
-    if (params.resCommand === 'end_node' || params.wsRefresh) {
-        setAlarmData(curCheckData)
-    }
+    setAlarmData(curCheckData)
     // websocket更新数据后再搜索回到原来查询的页面
     if (params.wsRefresh && sessionStorage.getItem(`${routerName}_search`)) {
         const searchParams: any = {
@@ -408,6 +406,7 @@ const alarmData: any = ref([])
 const setAlarmData = (data: any) => {
     const dataCopy = JSON.parse(JSON.stringify(data.value))
     const _data = dataCopy.filter((item: any) => item.alarm_pop == '1')
+    alarmData.value = []
     let alarmMsg: any = {}
     for (let i of _data) {
         for (let j of i.node_data.line_datas) {
@@ -482,10 +481,12 @@ const audioSrc: any = new URL('@/assets/audio/alarm.mp3', import.meta.url).href
 watch(
     alarmData,
     (newVal) => {
-        if (newVal.length && !mutedSound.value) {
+        if (newVal.length) {
             flashAnimation.value = true
-            audio.value.muted = false
-            audio.value.play()
+            if (!mutedSound.value) {
+                audio.value.muted = false
+                audio.value.play()
+            }
         } else {
             flashAnimation.value = false
             audio.value.muted = true
