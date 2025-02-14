@@ -60,14 +60,10 @@
                 <template v-for="item in fieldLists" :key="item">
                     <el-table-column
                         v-if="item.isShow ?? true"
-                        :label="item.label"
-                        :prop="item.prop"
-                        :fixed="item.fixed"
+                        v-bind="{ ...item }"
+                        :type="item.tableCellType"
                         :align="item.align ?? 'center'"
-                        :sortable="item.sortable"
-                        :width="item.width"
                         :min-width="item.minWidth"
-                        :filters="item.filters"
                         :filter-method="item.filterMethod"
                         :showOverflowTooltip="item.showOverflowTooltip ?? item.prop !== 'operation'"
                     >

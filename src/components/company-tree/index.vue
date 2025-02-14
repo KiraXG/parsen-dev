@@ -76,6 +76,7 @@ const emit = defineEmits<{
             project?: object
             saveData?: object
             wsRefresh?: boolean
+            resCommand?: string
         }
     ]
     getNewNodeClickData: [{ curCheckData: object[] }]
@@ -213,7 +214,8 @@ const companyTreeNodeCheckWebsocket = async (project: any, check: any) => {
         curCheckData.value.push(...res.node_list)
         alarmCount.value = curCheckData.value.length
 
-        emit('getNodeClickData', { curCheckData, alarmCount, project, saveData })
+        const resCommand = res.command
+        emit('getNodeClickData', { curCheckData, alarmCount, project, saveData, resCommand })
         // console.log('当前点击project列表', curCheckData.value)
         loading.value = false
         companyTree.value!.setTreeSelectNode(saveData.value.check.checkedNodes)

@@ -28,6 +28,16 @@ export const formatDate = (date?: any, format?: any, value: any = 0, type: any =
         .format(format || 'YYYY-MM-DD HH:mm:ss')
 }
 
+// 格式化为一天的开始-text
+export const startDateTimeText = (date?: any) => {
+    return dayjs(date).format('YYYY-MM-DD') + ' 00:00:00'
+}
+
+// 格式化为一天的结束-text
+export const endDateTimeText = (date?: any) => {
+    return dayjs(date).format('YYYY-MM-DD') + ' 23:59:59'
+}
+
 // 格式化为一天的开始
 export const startDateTime = (date?: any) => {
     return new Date(dayjs(date).format('YYYY-MM-DD') + ' 00:00:00')
@@ -498,7 +508,7 @@ export const ExtUnitCalculate: any = {
 // 单位转义
 export const translateUnit = (value: any, type?: any) => {
     const data: any = UNIT_TABLE.find((i: any) => i.type === value)
-    return data ? data[type || 'name'] : ''
+    return data ? data[type || 'name'] : '' // 默认取 name, 可传 type 指定其他项
 }
 
 // 单位转义详细
@@ -510,6 +520,18 @@ export const translateUnitDesp = (data: any) => {
             if (i.unit == j.type) {
                 tags.push({ name: `${j.desc} ${i.value} ${j.name}`, type: i.node_line })
             }
+        }
+    }
+    return tags
+}
+
+// 单位转义详细: 单个
+export const translateUnitDespSingle = (data: any) => {
+    if (!data) return
+    let tags: string = ''
+    for (let j of UNIT_TABLE) {
+        if (data.unit == j.type) {
+            tags = `${data.value} ${j.name}`
         }
     }
     return tags
@@ -561,9 +583,9 @@ export const PsColor = {
     PS_YIBIAO_ICON: 'rgb(0, 125, 255)', //仪表蓝,树菜单处仪表图标的颜色
 
     PS_LOPOWER_GREY: '#909399', //缺电灰
-    PS_SUCCESS_GREEN: '#4daf1c', //成功绿
-    PS_WARNING_YELLOW: '#fb9f16', //警告黄
-    PS_ALARM_RED: '#f10606', //警告红
+    PS_SUCCESS_GREEN: '#67C23A', //成功绿
+    PS_WARNING_YELLOW: '#E6A23C', //警告黄
+    PS_ALARM_RED: '#F56C6C', //警告红
 
     paramColors: function () {
         return [this.PS_BLUE, this.PS_GREEN, this.PS_YELLOW, this.PS_PIN]

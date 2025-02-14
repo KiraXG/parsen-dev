@@ -98,7 +98,6 @@
                         <el-date-picker
                             v-model="startEndTime"
                             type="datetimerange"
-                            placeholder="选择开始日期"
                             :shortcuts="shortcuts"
                             range-separator="至"
                             :disabled="selectStartEndTime"
@@ -502,7 +501,7 @@ const handleSelectChange = () => {
 // 获取表格数据
 const ws: any = ref(null) // websocket实例
 const tableData: any = ref([]) // 表格数据
-const changeLineDatas: any = ref([]) // 表格数据
+const changeLineDatas: any = ref([]) // 图表数据
 const fieldLists: any = ref([]) // 当前表格column
 const beforeTable = reactive([
     // 表格动态列前column
