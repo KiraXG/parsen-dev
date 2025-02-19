@@ -542,7 +542,8 @@ const handleSizeChange = (val: any) => {
 
 // 向父组件暴露方法
 defineExpose({
-    search
+    search,
+    handleClearSelectedData
 })
 </script>
 

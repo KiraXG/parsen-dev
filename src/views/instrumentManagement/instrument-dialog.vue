@@ -401,10 +401,10 @@ const confirm = () => {
                     cus_unit: info.cus_unit
                 }
                 lp.alarm_switch =
-                    (info.h2_open ? 0x0008 : 0) |
-                    (info.h1_open ? 0x0002 : 0) |
-                    (info.l1_open ? 0x0001 : 0) |
-                    (info.l2_open ? 0x0004 : 0)
+                    (info.h2_open ? alarmMask.HI_ALARM_2_MASK : 0) |
+                    (info.h1_open ? alarmMask.HI_ALARM_1_MASK : 0) |
+                    (info.l1_open ? alarmMask.LO_ALARM_1_MASK : 0) |
+                    (info.l2_open ? alarmMask.LO_ALARM_2_MASK : 0)
 
                 lineParams.push(lp)
             }

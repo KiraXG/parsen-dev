@@ -10,6 +10,7 @@
         @close="close"
     >
         <ps-search-table
+            ref="ps_table"
             :tableData="tableData"
             :fieldLists="fieldLists"
             :border="true"
@@ -127,11 +128,13 @@ const open = () => {
 
 // 定义 emit 方法
 const emit = defineEmits<{
+    refresh: [] // 取消后刷新页面
     close: [] // 关闭弹窗
 }>()
 
 // 选中的数据
-const selectedData = ref([])
+const selectedData: any = ref([])
+const ps_table: any = ref(null)
 const getSelectedData = (params: any) => {
     selectedData.value = params.selectedData.value
 }
@@ -144,7 +147,6 @@ const clearAlarm = () => {
     }
     let i: any
     for (i of selectedData.value) {
-        console.log(i)
         try {
             const params = {
                 access_token: userStore.token,
@@ -153,8 +155,18 @@ const clearAlarm = () => {
                 clean_alarm_notice: '1'
             }
             cleanNodeAlarmFlag(params)
-                .then((res) => {
-                    console.log(res)
+                .then(() => {
+                    // 从表格中抹去
+                    const hasIndex = tableData.value.filter((j: any) => i.node_id === j.node_id)
+                    for (let m of hasIndex) {
+                        const index = tableData.value.findIndex(
+                            (j: any) => m.alarmRowId === j.alarmRowId
+                        )
+                        tableData.value.splice(index, 1)
+                    }
+                    ps_table.value.handleClearSelectedData()
+
+                    emit('refresh')
                     ElMessage.success('取消成功')
                 })
                 .catch((e) => {

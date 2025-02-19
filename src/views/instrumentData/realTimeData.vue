@@ -154,7 +154,7 @@ import emitter from '@/utils/emitter'
 // #region ********** start 左侧树方法 **********
 const curCheckData: any = ref([]) // 当前点击节点的project总数
 const alarmCount: any = ref(0) // 仪表总数
-const curProject: any = ref({}) // 当前点击的节点数据
+const saveData: any = ref({}) // 当前点击的节点数据
 
 // 路由名称
 const $router = useRouter()
@@ -171,7 +171,7 @@ const getNodeClickData = (params: any) => {
     if (params.saveData) localStorage.setItem(routerName, JSON.stringify(params.saveData.value))
     curCheckData.value = params.curCheckData.value
     alarmCount.value = params.alarmCount.value
-    curProject.value = params.project
+    saveData.value = params.saveData.value
     setTableData(curCheckData)
     setAlarmData(curCheckData)
     // websocket更新数据后再搜索回到原来查询的页面
@@ -541,7 +541,7 @@ const closeAlarmDetailDialog = () => {
 
 // 取消报警后刷新列表
 const refresh = () => {
-    if (companyTree.value) companyTree.value.companyTreeNodeClick(curProject.value)
+    if (companyTree.value) companyTree.value.companyTreeNodeCheckWebsocket(saveData.value.project, saveData.value.check)
 }
 // #endregion ********** end 报警记录汇总-最新 **********
 
