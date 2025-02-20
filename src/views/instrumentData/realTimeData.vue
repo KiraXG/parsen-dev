@@ -493,7 +493,6 @@ watch(
         if (newVal.length) {
             flashAnimation.value = true
             if (!mutedSound.value && JSON.stringify(newVal) !== beforeAlarmData.value) {
-                console.log(1111)
                 audio.value.muted = false
                 audio.value.play()
                 setTimeout(() => {
