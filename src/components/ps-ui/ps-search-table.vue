@@ -2,6 +2,7 @@
     <div class="ps-search-table">
         <!-- 搜索栏 -->
         <ps-search
+            ref="ps_search"
             class="card table-search"
             v-if="hasSearch"
             :labelWidth="labelWidth"
@@ -372,6 +373,12 @@ const closePopover = (property?: any) => {
     }
 }
 
+// 刷新页面后回显搜索参数
+const ps_search: any = ref(null)
+const setSearchParams = (data: any) => {
+    ps_search.value.setSearchParams(data)
+}
+
 // 路由名称
 const $router = useRouter()
 const routerName: any = $router.currentRoute.value.name
@@ -543,7 +550,8 @@ const handleSizeChange = (val: any) => {
 // 向父组件暴露方法
 defineExpose({
     search,
-    handleClearSelectedData
+    handleClearSelectedData,
+    setSearchParams
 })
 </script>
 

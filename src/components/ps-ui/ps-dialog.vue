@@ -33,7 +33,9 @@
         <template #footer>
             <slot name="dialogFooter">
                 <div>
-                    <el-button @click="closeDialog" :type="isShowConfirm ? 'default' : 'primary'">{{ isEdit ? '取消' : '关闭' }}</el-button>
+                    <el-button @click="closeDialog" :type="isShowConfirm ? 'default' : 'primary'">{{
+                        isEdit ? '取消' : '关闭'
+                    }}</el-button>
                     <el-button
                         :loading="loading"
                         :disabled="loading"

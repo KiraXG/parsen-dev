@@ -37,15 +37,15 @@ const useUserStore = defineStore('User', {
             this.userInfo = res.company as companyType
             // 根据不同的角色赋予不同的菜单权限
             const showNodeList =
-                this.userInfo.company_id == '1' || this.userInfo.manage_company == '1'
+                this.userInfo.company_id == '1' ||
+                this.userInfo.manage_company == '1' ||
+                this.userInfo.manage_node == '1'
             const showProjectList =
                 this.userInfo.company_id == '1' ||
                 this.userInfo.manage_company == '1' ||
                 this.userInfo.manage_node == '1'
             const showManager =
-                this.userInfo.company_id == '1' ||
-                this.userInfo.manage_company == '1' ||
-                this.userInfo.manage_node == '1'
+                this.userInfo.company_id == '1' || this.userInfo.manage_company == '1'
             this.menuList = constantRoutes(showNodeList, showProjectList, showManager)
         },
         /**

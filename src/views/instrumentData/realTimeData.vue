@@ -175,12 +175,13 @@ const getNodeClickData = (params: any) => {
     setTableData(curCheckData)
     setAlarmData(curCheckData)
     // websocket更新数据后再搜索回到原来查询的页面
-    if (params.wsRefresh && sessionStorage.getItem(`${routerName}_search`)) {
+    if (sessionStorage.getItem(`${routerName}_search`)) {
         const searchParams: any = {
             searchParams: ref(JSON.parse(sessionStorage.getItem(`${routerName}_search`) as any))
         }
         setTimeout(() => {
             ps_table.value.search(searchParams)
+            ps_table.value.setSearchParams(searchParams)
         })
     }
     draw()
@@ -267,6 +268,7 @@ const outputList = () => {
     const fileName = `实时数据_${formatDate(new Date())}`
     const excelCellWidth = [5, 6, 8, 8, 5, 10, 4]
     exportExcel(fileName, listData, fieldLists, excelCellWidth)
+    handleAudioPlayRepeat()
 }
 
 // #region ********** start 处理表格数据 **********
@@ -375,6 +377,7 @@ const showInstrumentDetail = (row: any) => {
     rowData.value = row
     dialogHeader.value = `『 ${rowData.value.node_name} 』详情`
     openDialog.value = true
+    handleAudioPlayRepeat()
 }
 
 // 关闭弹窗
@@ -392,6 +395,7 @@ const alarmRowData = ref([])
 const showAlarmRecord = (row: any) => {
     openAlarmDialog.value = true
     alarmRowData.value = row
+    handleAudioPlayRepeat()
 }
 
 // 关闭报警记录弹窗
@@ -403,9 +407,11 @@ const closeAlarmDialog = () => {
 // #region ********** start 报警记录汇总-最新 **********
 // 筛选带报警标识的数据
 const alarmData: any = ref([])
+const beforeAlarmData: any = ref('') // 记录上一次报警数据
 const setAlarmData = (data: any) => {
     const dataCopy = JSON.parse(JSON.stringify(data.value))
     const _data = dataCopy.filter((item: any) => item.alarm_pop == '1')
+    beforeAlarmData.value = JSON.stringify(alarmData.value)
     alarmData.value = []
     let alarmMsg: any = {}
     for (let i of _data) {
@@ -440,6 +446,9 @@ const setAlarmData = (data: any) => {
                 if (alarmData.length && !mutedSound.value) {
                     audio.value.muted = false
                     audio.value.play()
+                    setTimeout(() => {
+                        audio.value.muted = true
+                    }, 3000)
                 }
             }
         }
@@ -483,9 +492,13 @@ watch(
     (newVal) => {
         if (newVal.length) {
             flashAnimation.value = true
-            if (!mutedSound.value) {
+            if (!mutedSound.value && JSON.stringify(newVal) !== beforeAlarmData.value) {
+                console.log(1111)
                 audio.value.muted = false
                 audio.value.play()
+                setTimeout(() => {
+                    audio.value.muted = true
+                }, 3000)
             }
         } else {
             flashAnimation.value = false
@@ -502,6 +515,9 @@ const handleMutedSound = () => {
     } else if (!mutedSound.value && alarmData.value.length) {
         audio.value.muted = false
         audio.value.play()
+        setTimeout(() => {
+            audio.value.muted = true
+        }, 3000)
     }
 }
 
@@ -514,24 +530,47 @@ onUnmounted(() => {
     emitter.off('audioPlay', handleAudioPlay)
 })
 
+/* 
+    因浏览器限制原因，只能通过用户主动点击操作来重新触发报警声音
+*/
+const menuClickFlag: any = ref(false) // 防止重复菜单点击报警
+const menuClickAlarmDialogFlag: any = ref(false) // 点击菜单跳转页面后，不再通过点击详细报警弹窗按钮来重新激活报警声音
 // 处理报警声
 const handleAudioPlay = () => {
+    menuClickAlarmDialogFlag.value = true
+    if (alarmData.value.length && !mutedSound.value && !menuClickFlag.value) {
+        audio.value.muted = false
+        audio.value.play()
+        setTimeout(() => {
+            audio.value.muted = true
+        }, 3000)
+        menuClickFlag.value = true
+    } else {
+        audio.value.muted = true
+    }
+}
+
+// 刷新页面重新激活报警声
+const handleAudioPlayRepeat = () => {
+    if (menuClickAlarmDialogFlag.value) {
+        return
+    } else {
+        menuClickAlarmDialogFlag.value = true
+    }
     if (alarmData.value.length && !mutedSound.value) {
         audio.value.muted = false
         audio.value.play()
-    } else {
-        audio.value.muted = true
+        setTimeout(() => {
+            audio.value.muted = true
+        }, 3000)
     }
 }
 
 // 打开报警弹窗
 const openAlarmDetailDialog: any = ref(false) // 打开弹窗
 const showAlarmDetail = () => {
-    if (alarmData.value.length && !mutedSound.value) {
-        audio.value.muted = false
-        audio.value.play()
-    }
     openAlarmDetailDialog.value = true
+    handleAudioPlayRepeat()
 }
 
 // 关闭报警弹窗
@@ -541,7 +580,11 @@ const closeAlarmDetailDialog = () => {
 
 // 取消报警后刷新列表
 const refresh = () => {
-    if (companyTree.value) companyTree.value.companyTreeNodeCheckWebsocket(saveData.value.project, saveData.value.check)
+    if (companyTree.value)
+        companyTree.value.companyTreeNodeCheckWebsocket(
+            saveData.value.project,
+            saveData.value.check
+        )
 }
 // #endregion ********** end 报警记录汇总-最新 **********
 

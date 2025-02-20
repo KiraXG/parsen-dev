@@ -50,7 +50,7 @@ const menuCol = () => {
 // 点击更新选中的tab和menu
 function handleSelect(key: any) {
     if (key === '/instrumentData/realTimeData') {
-        emitter.emit('audioPlay');
+        emitter.emit('audioPlay')
     }
     userStore.updateState(['editableTabsValue', key])
     userStore.updateState(['activeMenu', key])

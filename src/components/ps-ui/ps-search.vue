@@ -114,6 +114,15 @@ const operateSpan = computed(() => {
     }, 0)
     return (3 - (colSpanSum % 3)) * 8
 })
+
+// 刷新页面后回显搜索参数
+const setSearchParams = (data: any) => {
+    searchParams.value = data.searchParams.value
+}
+
+defineExpose({
+    setSearchParams
+})
 </script>
 
 <style lang="scss" scoped></style>
