@@ -191,7 +191,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, markRaw } from 'vue'
 import {
     formatDate,
     UNIT_TABLE,
@@ -442,7 +442,7 @@ const dataEchartsDom: any = ref(null) // echarts dom
 
 // 初始化echarts图表
 const initCharts = () => {
-    dataEchartsDom.value = echarts.init(document.getElementById('dataChart'))
+    dataEchartsDom.value = markRaw(echarts.init(document.getElementById('dataChart')))
     window.addEventListener('resize', () => {
         dataEchartsDom.value && dataEchartsDom.value.resize()
     })
@@ -684,7 +684,7 @@ const outputAllData = () => {
 // 初始化 供电电压/电池电量 图表
 const volChartsDom: any = ref(null)
 const initVolChartsData = () => {
-    volChartsDom.value = echarts.init(document.getElementById('canvas_vol'))
+    volChartsDom.value = markRaw(echarts.init(document.getElementById('canvas_vol')))
     // 绑定事件
     volChartsDom.value.on('dataZoom', (params: any) => {
         if (params.customFlag == 'zhang') return
@@ -718,7 +718,7 @@ const initVolChartsData = () => {
 // 初始化 信号强度 图表
 const csqChartsDom: any = ref(null)
 const initCsqChartsData = () => {
-    csqChartsDom.value = echarts.init(document.getElementById('canvas_csq'))
+    csqChartsDom.value = markRaw(echarts.init(document.getElementById('canvas_csq')))
     // 绑定事件
     csqChartsDom.value.on('dataZoom', (params: any) => {
         if (params.customFlag == 'zhang') return
@@ -750,8 +750,10 @@ const initCsqChartsData = () => {
 const dataChartsDom: any = ref([])
 const initDataChartData = () => {
     for (let i in props.rowData.node_data.line_datas) {
-        const domInstance = echarts.init(
-            document.getElementById(`canvas_${props.rowData.node_data.line_datas[i].node_line}`)
+        const domInstance = markRaw(
+            echarts.init(
+                document.getElementById(`canvas_${props.rowData.node_data.line_datas[i].node_line}`)
+            )
         ) //返回dom
         domInstance.on('dataZoom', (params: any) => {
             if (params.customFlag == 'zhang') return
