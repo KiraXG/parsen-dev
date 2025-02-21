@@ -12,64 +12,96 @@
         <div class="card dialog-container">
             <!-- 基本信息 -->
             <div class="dialog-form">
-                <el-row>
+                <el-row class="card">
                     <el-col :span="8">
-                        <div class="card dialog-cell"><span>IMEI: </span>{{ rowData.imei }}</div>
+                        <div><span class="form-font">IMEI: </span>{{ rowData.imei }}</div>
                     </el-col>
                     <el-col :span="8">
-                        <div class="card dialog-cell"><span>工位号: </span>{{ rowData.group }}</div>
+                        <div><span class="form-font">工位号: </span>{{ rowData.group }}</div>
                     </el-col>
                     <el-col :span="8">
-                        <div class="card dialog-cell">
-                            <span>SIM卡号: </span>{{ rowData.iccid }}
-                        </div>
-                    </el-col>
-                </el-row>
-                <el-row>
-                    <el-col :span="8">
-                        <div class="card dialog-cell">
-                            <span>最后更新时间:</span>
-                            {{ rowData.node_data ? formatDate(rowData.node_data.date) : '- -' }}
-                        </div>
-                    </el-col>
-                    <el-col :span="8">
-                        <div class="card dialog-cell">
-                            <span>连网状态:</span>
-                            {{
-                                rowData.node_data
-                                    ? (+new Date() - +new Date(rowData.node_data.date)) /
-                                          1000 /
-                                          60 >
-                                      rowData.send_gap * 3
-                                        ? '离线'
-                                        : '在线'
-                                    : '- -'
-                            }}
-                        </div>
-                    </el-col>
-                </el-row>
-                <el-row>
-                    <el-col
-                        :span="8"
-                        v-for="(item, index) in translateUnitDesp(rowData.node_data)"
-                        :key="index"
-                    >
-                        <div class="card dialog-cell">
-                            <span :style="{ color: tagType(index) }">{{ item.name }}</span>
-                        </div>
+                        <div><span class="form-font">SIM卡号: </span>{{ rowData.iccid }}</div>
                     </el-col>
                 </el-row>
             </div>
-            <!-- 高德地图 -->
             <div class="dialog-map-echarts">
+                <!-- 仪表详情 -->
+                <div class="dialog-detail">
+                    <div class="card dialog-cell-container" style="min-height: 95px">
+                        <el-row class="card dialog-cell">
+                            <div>
+                                <span class="form-font">最后更新时间: </span>
+                                <span style="color: #409eff">
+                                    {{
+                                        rowData.node_data
+                                            ? formatDate(rowData.node_data.date)
+                                            : '- -'
+                                    }}
+                                </span>
+                            </div>
+                        </el-row>
+                        <el-row class="card dialog-cell">
+                            <div>
+                                <span class="form-font">连网状态: </span>
+                                <span
+                                    :style="{
+                                        color:
+                                            (+new Date() - +new Date(rowData.node_data.date)) /
+                                                1000 /
+                                                60 >
+                                            rowData.send_gap * 3
+                                                ? '#F56C6C'
+                                                : '#67C23A'
+                                    }"
+                                >
+                                    {{
+                                        rowData.node_data
+                                            ? (+new Date() - +new Date(rowData.node_data.date)) /
+                                                  1000 /
+                                                  60 >
+                                              rowData.send_gap * 3
+                                                ? '离线'
+                                                : '在线'
+                                            : '- -'
+                                    }}
+                                </span>
+                            </div>
+                        </el-row>
+                    </div>
+                    <div
+                        class="card dialog-cell-container"
+                        style="min-height: 405px"
+                        v-loading="mapLoading"
+                        element-loading-text="正在加载数据，请稍等..."
+                    >
+                        <div style="margin-top: 10px" class="form-font">
+                            最新位置数据 (最近5条)：
+                        </div>
+                        <div style="max-height: 365px; overflow: scroll">
+                            <el-row
+                                class="card dialog-cell"
+                                style="padding-bottom: 10px"
+                                v-for="(item, index) in addressDetail"
+                                :key="index"
+                            >
+                                <div>
+                                    <div style="color: #409eff">{{ formatDate(item.date) }}：</div>
+                                    <div>{{ item.addressDetail }}</div>
+                                </div>
+                            </el-row>
+                        </div>
+                    </div>
+                </div>
+                <!-- 高德地图 -->
                 <div
                     id="map_container"
                     class="card map-container"
                     v-loading="mapLoading"
                     element-loading-text="正在加载数据，请稍等..."
                 ></div>
+                <!-- 仪表参数 -->
                 <div class="card echarts-container">
-                    <div id="dataChart" style="width: 100%; height: 70%"></div>
+                    <div id="dataChart" style="width: 100%; height: 60%"></div>
                     <div class="button-container">
                         <el-radio-group
                             v-for="(item, index) in dataEchartsInfo"
@@ -82,6 +114,18 @@
                                 :value="index"
                             ></el-radio-button>
                         </el-radio-group>
+                    </div>
+                    <div class="card dialog-cell-container" style="width: 100%">
+                        <el-row
+                            class="card dialog-cell"
+                            style=""
+                            v-for="(item, index) in translateUnitDesp(rowData.node_data)"
+                            :key="index"
+                        >
+                            <div>
+                                <span :style="{ color: tagType(index) }">{{ item.name }}</span>
+                            </div>
+                        </el-row>
                     </div>
                 </div>
             </div>
@@ -297,6 +341,7 @@ const open = () => {
 // #region ********** start 处理高德地图 **********
 // 高德地图
 const map: any = ref(null) // 高德地图实例
+const addressDetail: any = ref([]) // 最后出现的五个位置：详细地址
 const loadMap = (lbsList: any) => {
     gdMap.then((AMap) => {
         map.value = new AMap.Map('map_container', {
@@ -348,6 +393,41 @@ const loadMap = (lbsList: any) => {
             }
 
             let list = lists.sort(sortFinal('date'))
+
+            // 找出最后出现的五个不同的点
+            const finalFivePoints: any = []
+            if (list.length === 1) {
+                finalFivePoints.push(...list)
+            } else {
+                for (let i = list.length - 1; i >= 0; i--) {
+                    if (finalFivePoints.length === 5) break
+                    if (i > 0) {
+                        if (list[i].beforeLonLatStr !== list[i - 1].beforeLonLatStr) {
+                            finalFivePoints.push(list[i])
+                        }
+                    } else {
+                        finalFivePoints.push(list[0])
+                    }
+                }
+            }
+            const geocoder = new AMap.Geocoder({
+                city: '010', //城市设为北京，默认：“全国”
+                radius: 1000 //范围，默认：500
+            })
+            for (let i = 0; i < finalFivePoints.length; i++) {
+                geocoder.getAddress(finalFivePoints[i], (status: any, result: any) => {
+                    if (status === 'complete' && result.regeocode) {
+                        const address = result.regeocode.formattedAddress
+                        addressDetail.value.push({
+                            ...finalFivePoints[i],
+                            addressDetail: address
+                        })
+                    } else {
+                        console.error('根据经纬度查询地址失败')
+                    }
+                })
+            }
+            console.log(addressDetail.value)
 
             // 找出maxLat和lbs.lat两个中的最大值，然后把它赋给maxLat
             let maxLon = noRepLngLatArrays[0][0]
@@ -806,6 +886,7 @@ const close = () => {
     mapLoading.value = false // 地图加载样式
     dataEchartsInfo.value = [] // echarts 图表信息
     map.value = null // 高德地图实例
+    addressDetail.value = [] // 最后出现的五个位置: 详细地址
     curDataEcharts.value = 0 // 当前echarts下标
     dataEchartsDom.value = null // echarts dom
 
@@ -826,26 +907,38 @@ const close = () => {
 <style lang="scss" scoped>
 .dialog-container {
     width: 100%;
-    .dialog-form {
-        .dialog-cell {
-            padding: 15px;
-        }
+    .dialog-cell-container {
+        padding: 5px 15px;
+    }
+    .dialog-detail {
+        width: 254px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .dialog-cell {
+        border: none;
+        box-shadow: unset;
+        padding: 12px 0;
+    }
+    .form-font {
+        font-weight: 600;
     }
     .dialog-map-echarts {
         width: 100%;
         height: 500px;
         display: flex;
-        align-items: center;
-        margin-top: 10px;
+        margin-top: 5px;
         .map-container {
             flex: 1;
             height: 100%;
         }
         .echarts-container {
-            flex: 0 0 400px;
+            flex: 0 0 300px;
             height: 100%;
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
             align-items: center;
         }
     }

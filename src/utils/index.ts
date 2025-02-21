@@ -518,7 +518,7 @@ export const translateUnitDesp = (data: any) => {
     for (let i of data.line_datas) {
         for (let j of UNIT_TABLE) {
             if (i.unit == j.type) {
-                tags.push({ name: `${j.desc} ${i.value} ${j.name}`, type: i.node_line })
+                tags.push({ name: `${j.desc}: ${i.value} ${j.name}`, type: i.node_line })
             }
         }
     }
