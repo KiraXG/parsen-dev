@@ -1,4 +1,4 @@
-import { formatDate, fontSize, PsColor, translateUnit } from '@/utils'
+import { formatDate, PsColor, translateUnit } from '@/utils'
 
 const alarmColor = 'rgb(238,121,89)'
 const normalColor = 'rgb(176,213,223)'
@@ -121,14 +121,15 @@ export const dataOption = (index: any, buttonInfos: any) => {
                 axisLabel: {
                     //仪表盘数字标签
                     color: 'inherit',
-                    distance: 40,
-                    fontSize: fontSize(15)
+                    distance: 35,
+                    fontSize: 12
                 },
                 detail: {
                     valueAnimation: true,
                     formatter: '{value}' + buttonInfos.value[index].unit_name,
                     color: 'inherit',
-                    fontSize: fontSize(25)
+                    fontSize: 18,
+                    offsetCenter: [0, '70px']
                 },
                 data: [
                     {

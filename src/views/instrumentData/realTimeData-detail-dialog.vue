@@ -27,50 +27,42 @@
             <div class="dialog-map-echarts">
                 <!-- 仪表详情 -->
                 <div class="dialog-detail">
-                    <div class="card dialog-cell-container" style="min-height: 95px">
+                    <div class="card dialog-cell-container" style="flex-shrink: 1">
                         <el-row class="card dialog-cell">
-                            <div>
-                                <span class="form-font">最后更新时间: </span>
-                                <span style="color: #409eff">
-                                    {{
-                                        rowData.node_data
-                                            ? formatDate(rowData.node_data.date)
-                                            : '- -'
-                                    }}
-                                </span>
-                            </div>
+                            <span class="form-font">最后更新时间:</span>
+                            <span style="color: #409eff">
+                                {{ rowData.node_data ? formatDate(rowData.node_data.date) : '- -' }}
+                            </span>
                         </el-row>
                         <el-row class="card dialog-cell">
-                            <div>
-                                <span class="form-font">连网状态: </span>
-                                <span
-                                    :style="{
-                                        color:
-                                            (+new Date() - +new Date(rowData.node_data.date)) /
-                                                1000 /
-                                                60 >
-                                            rowData.send_gap * 3
-                                                ? '#F56C6C'
-                                                : '#67C23A'
-                                    }"
-                                >
-                                    {{
-                                        rowData.node_data
-                                            ? (+new Date() - +new Date(rowData.node_data.date)) /
-                                                  1000 /
-                                                  60 >
-                                              rowData.send_gap * 3
-                                                ? '离线'
-                                                : '在线'
-                                            : '- -'
-                                    }}
-                                </span>
-                            </div>
+                            <span class="form-font">连网状态:</span>
+                            <span
+                                :style="{
+                                    color:
+                                        (+new Date() - +new Date(rowData.node_data.date)) /
+                                            1000 /
+                                            60 >
+                                        rowData.send_gap * 3
+                                            ? '#F56C6C'
+                                            : '#67C23A'
+                                }"
+                            >
+                                {{
+                                    rowData.node_data
+                                        ? (+new Date() - +new Date(rowData.node_data.date)) /
+                                              1000 /
+                                              60 >
+                                          rowData.send_gap * 3
+                                            ? '离线'
+                                            : '在线'
+                                        : '- -'
+                                }}
+                            </span>
                         </el-row>
                     </div>
                     <div
                         class="card dialog-cell-container"
-                        style="min-height: 405px"
+                        style="flex-grow: 1"
                         v-loading="mapLoading"
                         element-loading-text="正在加载数据，请稍等..."
                     >
@@ -84,10 +76,8 @@
                                 v-for="(item, index) in addressDetail"
                                 :key="index"
                             >
-                                <div>
-                                    <div style="color: #409eff">{{ formatDate(item.date) }}：</div>
-                                    <div>{{ item.addressDetail }}</div>
-                                </div>
+                                <span style="color: #409eff">{{ formatDate(item.date) }}：</span>
+                                <span>{{ item.addressDetail }}</span>
                             </el-row>
                         </div>
                     </div>
