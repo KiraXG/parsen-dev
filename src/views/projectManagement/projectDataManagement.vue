@@ -99,14 +99,14 @@ const dataLoading = (params: any) => {
 const getTreeNodeClick = (params: any) => {
     curProject.value = params.project
     curCheckData.value = params.projectList
-    getTableData(curCheckData)
+    setTableData(curCheckData)
 }
 // #endregion ********** end 左侧树方法 **********
 
 // #region ********** start 处理表格数据 **********
 const tableData: any = ref([])
 // 给表格传数据
-const getTableData = (data: any) => {
+const setTableData = (data: any) => {
     tableData.value = data.value
 }
 const _tableData = computed(() => tableData.value)

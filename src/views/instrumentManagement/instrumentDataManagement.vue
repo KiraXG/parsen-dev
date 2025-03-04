@@ -21,11 +21,13 @@
         </div>
         <div class="tree-table-right instrumentDataManagement-right">
             <ps-search-table
+                ref="ps_table"
                 rowKey="node_id"
                 :loading="loading"
                 :border="true"
                 :fieldLists="fieldLists"
                 :tableData="tableData"
+                :pageConfig="pageConfig"
             >
                 <template #tableHeader>
                     <el-button icon="CirclePlus" type="primary" @click="addInstrumentToProject">{{
@@ -137,6 +139,11 @@ const saveData: any = ref({}) // 当前点击节点的project名称
 
 // 路由名称
 const $router = useRouter()
+const ps_table: any = ref(null)
+const pageConfig: any = ref({
+    pageNum: 1,
+    pageSize: 10
+})
 const routerName: any = $router.currentRoute.value.name
 // 点击树的多选框传过来的数据
 const getNodeClickData = (params: any) => {
@@ -146,6 +153,16 @@ const getNodeClickData = (params: any) => {
     curProject.value = params.project
     saveData.value = params.saveData.value
     setTableData(curCheckData)
+    // websocket更新数据后再搜索回到原来查询的页面
+    if (sessionStorage.getItem(`${routerName}_search`)) {
+        const searchParams: any = {
+            searchParams: ref(JSON.parse(sessionStorage.getItem(`${routerName}_search`) as any))
+        }
+        setTimeout(() => {
+            ps_table.value.search(searchParams)
+            ps_table.value.setSearchParams(searchParams)
+        })
+    }
 }
 
 // 拖拽改变容器大小

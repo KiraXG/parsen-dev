@@ -314,6 +314,10 @@ const fieldLists = ref([
     {
         label: '工位号',
         prop: 'group',
+        search: {
+            type: 'input',
+            span: 1
+        },
         minWidth: 100
     },
     {
