@@ -439,6 +439,7 @@ const reset = () => {
     realFilterParams.value = {}
     headerPopover.value = {}
     curTableData.value = _tableData.value
+    sessionStorage.removeItem(`${routerName}_search`)
 }
 /* -------------------- 表格按钮 -------------------- */
 
