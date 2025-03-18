@@ -217,12 +217,14 @@ const companyTreeNodeCheckWebsocket = async (project: any, check: any) => {
         const resCommand = res.command
         emit('getNodeClickData', { curCheckData, alarmCount, project, saveData, resCommand })
         // console.log('当前点击project列表', curCheckData.value)
-        loading.value = false
+        loading.value = true
         companyTree.value!.setTreeSelectNode(saveData.value.check.checkedNodes)
         emit('dataLoading', { loading })
 
         // 向 websocket 服务器发送注册命令, 把目前正在显示的仪表列表告诉服务器
         if (res.command === 'end_node') {
+            loading.value = false
+            emit('dataLoading', { loading })
             let nodeIdArr: any = []
             for (let item of curCheckData.value) {
                 nodeIdArr.push(item.node_id)

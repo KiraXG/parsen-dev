@@ -15,6 +15,7 @@
     "noEmit": true,
     "jsx": "preserve",
     "jsxImportSource": "vue",
+    "esModuleInterop": true,
 
     /* Linting */
     "strict": true,

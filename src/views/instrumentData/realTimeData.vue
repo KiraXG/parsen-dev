@@ -150,11 +150,13 @@ import AlarmRecordDetailDialog from './alarmRecordDetailDialog.vue'
 import useSettingStore from '@/store/modules/setting'
 import { dragControllerDiv } from '@/utils'
 import emitter from '@/utils/emitter'
+import * as _ from 'lodash'
 
 // #region ********** start 左侧树方法 **********
 const curCheckData: any = ref([]) // 当前点击节点的project总数
 const alarmCount: any = ref(0) // 仪表总数
 const saveData: any = ref({}) // 当前点击的节点数据
+const resCommand: any = ref('') // 当前点击的节点数据
 
 // 路由名称
 const $router = useRouter()
@@ -166,12 +168,13 @@ const pageConfig: any = ref({
     pageSize: 10
 })
 // 点击树的多选框传过来的数据
-const getNodeClickData = (params: any) => {
+const getNodeClickData = _.debounce((params: any) => {
     // 存储已选择的节点
     if (params.saveData) localStorage.setItem(routerName, JSON.stringify(params.saveData.value))
     curCheckData.value = params.curCheckData.value
     alarmCount.value = params.alarmCount.value
     saveData.value = params.saveData.value
+    resCommand.value = params.resCommand
     setTableData(curCheckData)
     setAlarmData(curCheckData)
     // websocket更新数据后再搜索回到原来查询的页面
@@ -185,7 +188,7 @@ const getNodeClickData = (params: any) => {
         })
     }
     draw()
-}
+}, 1000)
 
 const companyTree: any = ref(null)
 onMounted(() => {

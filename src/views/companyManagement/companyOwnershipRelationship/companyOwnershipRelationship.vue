@@ -55,8 +55,10 @@ import useUserStore from '@/store/modules/user'
 import CompanyDialog from './dialog.vue'
 import { getCompanyTree } from '@/api/home'
 import { removeOneSon } from '@/api/companyManagement'
+import useCompanyTreeStore from '@/store/modules/company-tree'
 
 const userStore = useUserStore()
+const companyTreeStore = useCompanyTreeStore()
 
 const loading: any = ref(false) // 加载样式
 
@@ -136,6 +138,7 @@ const deleteCompany = (row: any) => {
     }
     removeOneSon(params).then(() => {
         getTableData()
+        refreshCompanyTree()
         ElMessage.success('删除成功!')
     })
 }
@@ -143,7 +146,13 @@ const deleteCompany = (row: any) => {
 // 提交成功后重置参数
 const confirm = () => {
     closeDialog()
+    refreshCompanyTree()
     getTableData()
+}
+
+// 刷新公司树
+const refreshCompanyTree = () => {
+    companyTreeStore.getTreeData()
 }
 
 // 关闭弹窗

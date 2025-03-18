@@ -80,9 +80,11 @@ import { deleteProject } from '@/api/projectManagement'
 import { ElMessage } from 'element-plus'
 import useSettingStore from '@/store/modules/setting'
 import { dragControllerDiv } from '@/utils'
+import useCompanyTreeStore from '@/store/modules/company-tree'
 
 const loading = ref(false)
 const userStore = useUserStore()
+const companyTreeStore = useCompanyTreeStore()
 // 子组件
 const companyTree: any = ref(null) // 包含子组件暴露的方法
 
@@ -195,6 +197,7 @@ const handleDelete = (row: any) => {
     }
     deleteProject(params).then(() => {
         if (companyTree.value) companyTree.value.companyTreeNodeClick(curProject.value)
+        refreshCompanyTree()
         ElMessage.success('删除成功')
     })
 }
@@ -202,7 +205,13 @@ const handleDelete = (row: any) => {
 // 提交成功后重置参数
 const confirm = () => {
     if (companyTree.value) companyTree.value.companyTreeNodeClick(curProject.value)
+    refreshCompanyTree()
     closeDialog()
+}
+
+// 刷新公司树
+const refreshCompanyTree = () => {
+    companyTreeStore.getTreeData()
 }
 
 // 关闭弹窗
