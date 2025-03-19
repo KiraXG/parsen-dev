@@ -481,10 +481,14 @@ watch(
 
 // 判断搜索参数是否为空
 const isSearchEmpty = () => {
-    const params = JSON.parse(sessionStorage.getItem(`${routerName}_search`) as any)
-    const values = Object.values(params)
-    const data = values.join('')
-    return data
+    if (sessionStorage.getItem(`${routerName}_search`)) {
+        const params = JSON.parse(sessionStorage.getItem(`${routerName}_search`) as any)
+        const values = Object.values(params)
+        const data = values.join('')
+        return data
+    } else {
+        return ''
+    }
 }
 
 // 当前表格数据总量
