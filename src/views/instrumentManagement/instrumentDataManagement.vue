@@ -127,7 +127,7 @@ import { useRouter } from 'vue-router'
 import InstrumentDialog from './instrument-dialog.vue'
 import useSettingStore from '@/store/modules/setting'
 import { dragControllerDiv } from '@/utils'
-import * as _ from 'lodash'
+// import * as _ from 'lodash'
 
 const loading = ref(false)
 const userStore = useUserStore()
@@ -147,7 +147,7 @@ const pageConfig: any = ref({
 })
 const routerName: any = $router.currentRoute.value.name
 // 点击树的多选框传过来的数据
-const getNodeClickData = _.debounce((params: any) => {
+const getNodeClickData = (params: any) => {
     // 存储已选择的节点
     if (params.saveData) localStorage.setItem(routerName, JSON.stringify(params.saveData.value))
     curCheckData.value = params.curCheckData.value
@@ -164,7 +164,7 @@ const getNodeClickData = _.debounce((params: any) => {
             ps_table.value.setSearchParams(searchParams)
         })
     }
-}, 1000)
+}
 
 // 拖拽改变容器大小
 const settingStore = useSettingStore()

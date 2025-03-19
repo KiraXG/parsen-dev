@@ -150,7 +150,7 @@ import AlarmRecordDetailDialog from './alarmRecordDetailDialog.vue'
 import useSettingStore from '@/store/modules/setting'
 import { dragControllerDiv } from '@/utils'
 import emitter from '@/utils/emitter'
-import * as _ from 'lodash'
+// import * as _ from 'lodash'
 
 // #region ********** start 左侧树方法 **********
 const curCheckData: any = ref([]) // 当前点击节点的project总数
@@ -168,7 +168,7 @@ const pageConfig: any = ref({
     pageSize: 10
 })
 // 点击树的多选框传过来的数据
-const getNodeClickData = _.debounce((params: any) => {
+const getNodeClickData = (params: any) => {
     // 存储已选择的节点
     if (params.saveData) localStorage.setItem(routerName, JSON.stringify(params.saveData.value))
     curCheckData.value = params.curCheckData.value
@@ -188,7 +188,7 @@ const getNodeClickData = _.debounce((params: any) => {
         })
     }
     draw()
-}, 1000)
+}
 
 const companyTree: any = ref(null)
 onMounted(() => {
