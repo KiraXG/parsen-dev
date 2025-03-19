@@ -404,7 +404,7 @@ const search = (val?: any) => {
     // 存储搜索数据
     sessionStorage.setItem(`${routerName}_search`, JSON.stringify(curSearchParams.value))
     // 筛选数据
-    curTableData.value = _tableData.value
+    tempTableData.value = _tableData.value
     for (let i in curSearchParams.value) {
         if (curSearchParams.value[i]) {
             // 判断是不是日期范围
@@ -412,19 +412,20 @@ const search = (val?: any) => {
                 Array.isArray(curSearchParams.value[i]) &&
                 dayjs(curSearchParams.value[i][0]).isValid()
             ) {
-                curTableData.value = curTableData.value.filter((item: any) => {
+                tempTableData.value = tempTableData.value.filter((item: any) => {
                     return new Date(item[i]) >= startDateTime(curSearchParams.value[i][0])
                 })
-                curTableData.value = curTableData.value.filter((item: any) => {
+                tempTableData.value = tempTableData.value.filter((item: any) => {
                     return new Date(item[i]) <= endDateTime(curSearchParams.value[i][1])
                 })
             } else {
-                curTableData.value = curTableData.value.filter((item: any) => {
+                tempTableData.value = tempTableData.value.filter((item: any) => {
                     return item[i] && item[i].includes(curSearchParams.value[i])
                 })
             }
         }
     }
+    curTableData.value = tempTableData.value
     // setTimeout(() => {
     //     tableLoading.value = false
     // }, 500)
@@ -453,12 +454,18 @@ const _tableData = computed(() => props.tableData)
 
 // 当前勾选后获得的以及筛选后的表格数据总数
 const curTableData: any = ref([])
+// 当前勾选后获得的以及筛选后的表格数据总数（搜索时用，解决闪一下的问题）
+const tempTableData: any = ref([])
 
 // 监听勾选的数量
 watch(
     _tableData,
     (val) => {
-        curTableData.value = val
+        if (isSearchEmpty()) {
+            tempTableData.value = val
+        } else {
+            curTableData.value = val
+        }
     },
     { deep: true }
 )
@@ -471,6 +478,14 @@ watch(
     },
     { deep: true }
 )
+
+// 判断搜索参数是否为空
+const isSearchEmpty = () => {
+    const params = JSON.parse(sessionStorage.getItem(`${routerName}_search`) as any)
+    const values = Object.values(params)
+    const data = values.join('')
+    return data
+}
 
 // 当前表格数据总量
 const total = computed(() => curTableData.value.length)
