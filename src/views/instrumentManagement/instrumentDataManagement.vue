@@ -161,7 +161,7 @@ const getNodeClickData = (params: any) => {
         }
         setTimeout(() => {
             ps_table.value.search(searchParams)
-            ps_table.value.setSearchParams(searchParams)
+            // ps_table.value.setSearchParams(searchParams)
         })
     }
 }

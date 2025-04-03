@@ -374,10 +374,10 @@ const closePopover = (property?: any) => {
 }
 
 // 刷新页面后回显搜索参数
-const ps_search: any = ref(null)
-const setSearchParams = (data: any) => {
-    ps_search.value.setSearchParams(data)
-}
+// const ps_search: any = ref(null)
+// const setSearchParams = (data: any) => {
+//     ps_search.value.setSearchParams(data)
+// }
 
 // 路由名称
 const $router = useRouter()
@@ -570,8 +570,8 @@ const handleSizeChange = (val: any) => {
 // 向父组件暴露方法
 defineExpose({
     search,
-    handleClearSelectedData,
-    setSearchParams
+    handleClearSelectedData
+    // setSearchParams
 })
 </script>
 

@@ -116,13 +116,13 @@ const operateSpan = computed(() => {
 })
 
 // 刷新页面后回显搜索参数
-const setSearchParams = (data: any) => {
-    searchParams.value = data.searchParams.value
-}
+// const setSearchParams = (data: any) => {
+//     searchParams.value = data.searchParams.value
+// }
 
-defineExpose({
-    setSearchParams
-})
+// defineExpose({
+//     setSearchParams
+// })
 </script>
 
 <style lang="scss" scoped></style>
