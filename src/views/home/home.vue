@@ -31,6 +31,18 @@
                     <div :id="item" class="chart-items"></div>
                 </div>
             </div>
+            <!-- 百度地图 -->
+            <baidu-map
+                class="bm-view"
+                :center="center"
+                :zoom="zoom"
+                :scroll-wheel-zoom="true"
+                @ready="handler"
+            >
+                <bm-scale anchor="BMAP_ANCHOR_TOP_RIGHT"></bm-scale>
+                <bm-navigation anchor="BMAP_ANCHOR_TOP_RIGHT"></bm-navigation>
+                <bm-overview-map anchor="BMAP_ANCHOR_BOTTOM_RIGHT" :isOpen="true"></bm-overview-map>
+            </baidu-map>
             <!-- 高德地图 -->
             <div id="map_container" class="map_container"></div>
         </div>
@@ -44,7 +56,7 @@ import { useRouter } from 'vue-router'
 import useSettingStore from '@/store/modules/setting'
 import * as echarts from 'echarts'
 import { companyOption, itemOption, nodeOption, alarmOption, stateOption } from './home-charts'
-import gdMap from '@/utils/gaode-map'
+// import gdMap from '@/utils/gaode-map'
 import { dragControllerDiv } from '@/utils'
 import useCompanyTreeStore from '@/store/modules/company-tree'
 
@@ -182,16 +194,26 @@ const draw = () => {
 }
 // #endregion ********** end 处理echarts图表 **********
 
-let map = ref(null)
-const loadMap = () => {
-    gdMap.then((AMap) => {
-        map.value = new AMap.Map('map_container', {
-            // 设置地图容器id
-            viewMode: '3D', // 是否为3D地图模式
-            zoom: 11, // 初始化地图级别
-            center: [116.397428, 39.90923] // 初始化地图中心点位置
-        })
-    })
+// let map = ref(null)
+// const loadMap = () => {
+//     gdMap.then((AMap) => {
+//         map.value = new AMap.Map('map_container', {
+//             // 设置地图容器id
+//             viewMode: '3D', // 是否为3D地图模式
+//             zoom: 11, // 初始化地图级别
+//             center: [116.397428, 39.90923] // 初始化地图中心点位置
+//         })
+//     })
+// }
+
+const center = ref({ lng: 0, lat: 0 })
+const zoom = ref(3)
+
+const handler = ({ BMap, map }: { BMap: any; map: any }) => {
+    console.log(BMap, map)
+    center.value.lng = 116.404
+    center.value.lat = 39.915
+    zoom.value = 15
 }
 
 // 拖拽改变容器大小
@@ -207,7 +229,7 @@ watch(
 onMounted(() => {
     dragControllerDiv('home-left', 'home-right', 'home-container', settingStore.isCollapse)
     initCharts()
-    loadMap()
+    // loadMap()
 })
 </script>
 
@@ -233,6 +255,11 @@ onMounted(() => {
                     height: 100%;
                 }
             }
+        }
+
+        .bm-view {
+            width: 100%;
+            height: 50%;
         }
 
         .map_container {

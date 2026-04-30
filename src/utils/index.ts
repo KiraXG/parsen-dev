@@ -170,6 +170,36 @@ export const PRESSURE_UNITS = [
 ]
 
 // 高德地图XY坐标转换的扩展函数，可以实现任意个数的坐标数组进行转换
+export const bdMapXYConvertorEx = (lbsList: any, xyHandler: any) => {
+    if (null == lbsList) {
+        return
+    }
+    if (0 == lbsList.length) {
+        return
+    }
+
+    let transLocationArr = [] // 转换后带时间的坐标
+    for (let i = 0; i < lbsList.length; i++) {
+        transLocationArr.push({
+            ...lbsList[i],
+            beforeLonLatArr: [lbsList[i].lon, lbsList[i].lat],
+            beforeLonLatStr: `${lbsList[i].lon},${lbsList[i].lat}`
+        })
+    }
+
+    setTimeout(() => {
+        let lngLatArrays = [] // 坐标数组数组
+        for (let item of transLocationArr) {
+            lngLatArrays.push([item.lon, item.lat]) // 把数组单独放一个数组
+        }
+
+        let noRepLngLatArrays = Array.from(new Set(lngLatArrays))
+        xyHandler(transLocationArr, noRepLngLatArrays)
+    }, 1000)
+}
+
+
+// 高德地图XY坐标转换的扩展函数，可以实现任意个数的坐标数组进行转换
 export const gdMapXYConvertorEx = (AMap: any, lbsList: any, xyHandler: any) => {
     if (null == lbsList) {
         return
@@ -230,6 +260,7 @@ export const gdMapXYConvertorEx = (AMap: any, lbsList: any, xyHandler: any) => {
         xyHandler(arr, noRepLngLatArrays)
     }, 1000)
 }
+
 
 // 导出excel表格
 export const exportExcel = (

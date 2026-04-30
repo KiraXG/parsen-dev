@@ -6,6 +6,7 @@ import ElementPlus from 'element-plus'
 import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import 'element-plus/dist/index.css'
 import 'dayjs/locale/zh-cn'
+import BaiduMap from 'vue-baidu-map-3x'
 
 // 引入pinia
 import pinia from './store'
@@ -38,5 +39,11 @@ app.use(pinia)
 app.use(VueAxios, axios)
 app.use(router)
 app.use(globalComponents)
+app.use(BaiduMap, {
+    // ak 是在百度地图开发者平台申请的密钥 详见 http://lbsyun.baidu.com/apiconsole/key */
+    ak: 'FGerd2zkLU0IuVPJAJHASDaTZ8b7OF5w',
+    // v:'2.0',  // 默认使用3.0
+    // type: 'WebGL' // ||API 默认API  (使用此模式 BMap=BMapGL)
+});
 
 app.mount('#app')

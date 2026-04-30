@@ -77,18 +77,50 @@
                                 :key="index"
                             >
                                 <span style="color: #409eff">{{ formatDate(item.date) }}：</span>
-                                <span>{{ item.addressDetail }}</span>
+                                <span>{{ item.address }}</span>
                             </el-row>
                         </div>
                     </div>
                 </div>
-                <!-- 高德地图 -->
+                <!-- 百度地图 -->
                 <div
                     id="map_container"
                     class="card map-container"
                     v-loading="mapLoading"
                     element-loading-text="正在加载数据，请稍等..."
-                ></div>
+                >
+                    <baidu-map
+                        class="bm-view"
+                        ref="BaiduMapRef"
+                        :center="center"
+                        :zoom="zoom"
+                        :scroll-wheel-zoom="true"
+                    >
+                        <bm-marker
+                            :title="markers.title"
+                            v-for="(markers, index) in markerList"
+                            :key="index"
+                            :position="markers"
+                            :icon="{
+                                url: index === markerList.length - 1 ? imgUrl : pointUrl,
+                                size:
+                                    index === markerList.length - 1
+                                        ? { width: 40, height: 40 }
+                                        : { width: 20, height: 40 }
+                            }"
+                        ></bm-marker>
+                        <bm-scale anchor="BMAP_ANCHOR_TOP_RIGHT"></bm-scale>
+                        <bm-navigation anchor="BMAP_ANCHOR_TOP_RIGHT"></bm-navigation>
+                        <bm-polyline :path="bdPolyline"></bm-polyline>
+                    </baidu-map>
+                </div>
+                <!-- 高德地图 -->
+                <!-- <div
+                    id="map_container"
+                    class="card map-container"
+                    v-loading="mapLoading"
+                    element-loading-text="正在加载数据，请稍等..."
+                ></div> -->
                 <!-- 仪表参数 -->
                 <div class="card echarts-container">
                     <div id="dataChart" style="width: 100%; height: 60%"></div>
@@ -229,12 +261,13 @@ import { ref, reactive, markRaw } from 'vue'
 import {
     formatDate,
     UNIT_TABLE,
-    gdMapXYConvertorEx,
+    bdMapXYConvertorEx,
+    // gdMapXYConvertorEx,
     exportExcel,
     translateUnit,
     translateUnitDesp
 } from '@/utils'
-import gdMap from '@/utils/gaode-map'
+// import gdMap from '@/utils/gaode-map'
 import { getLbsList } from '@/api/realTimeData'
 import useUserStore from '@/store/modules/user'
 import * as echarts from 'echarts'
@@ -319,7 +352,8 @@ const open = () => {
     getLbsList(params)
         .then((res: any) => {
             // 加载地图
-            if (res.result == '1') loadMap(res.lbs_list)
+            if (res.result == '1') loadBaiduMap(res.lbs_list)
+            // if (res.result == '1') loadMap(res.lbs_list)
         })
         .finally(() => {
             mapLoading.value = false
@@ -328,182 +362,270 @@ const open = () => {
     getTableData()
 }
 
-// #region ********** start 处理高德地图 **********
-// 高德地图
-const map: any = ref(null) // 高德地图实例
+// #region ********** start 处理百度地图 **********
+const BaiduMapRef: any = ref(null)
+
+const imgUrl = ref(new URL('@/assets/images/truck40.png', import.meta.url).href)
+const pointUrl = ref(new URL('@/assets/images/point20.png', import.meta.url).href)
+
 const addressDetail: any = ref([]) // 最后出现的五个位置：详细地址
-const loadMap = (lbsList: any) => {
-    gdMap.then((AMap) => {
-        map.value = new AMap.Map('map_container', {
-            // 设置地图容器id
-            viewMode: '3D', // 是否为3D地图模式
-            zoom: 11, // 初始化地图级别
-            center: [116.397428, 39.90923] // 初始化地图中心点位置
-        })
 
-        // 比例尺
-        const scale = new AMap.Scale({
-            visible: true
-        })
+const center = ref({ lng: 116.404, lat: 39.915 })
+const zoom = ref(14)
+const markerList: any = ref([]) // 百度地图点集合
+const bdPolyline: any = ref([]) // 百度地图路径点集合
 
-        // 放大缩小
-        const toolBar = new AMap.ToolBar({
-            visible: true,
-            position: {
-                top: '110px',
-                right: '40px'
+const loadBaiduMap = (lbsList: any) => {
+    console.log(BaiduMapRef.value)
+
+    // 坐标转换
+    bdMapXYConvertorEx(lbsList, (lists: any, noRepLngLatArrays: any) => {
+        function sortFinal(date: any) {
+            return function (a: any, b: any) {
+                let f: any = new Date(a[date])
+                let s: any = new Date(b[date])
+                return f - s
             }
-        })
-
-        // 指南针
-        const controlBar = new AMap.ControlBar({
-            visible: true,
-            position: {
-                top: '10px',
-                right: '10px'
-            }
-        })
-        map.value.addControl(scale)
-        map.value.addControl(toolBar)
-        map.value.addControl(controlBar)
-
-        // 没有就不画点
-        if (!map.value || !lbsList || !lbsList.length) {
-            return
         }
 
-        // 坐标转换
-        gdMapXYConvertorEx(AMap, lbsList, (lists: any, noRepLngLatArrays: any) => {
-            function sortFinal(date: any) {
-                return function (a: any, b: any) {
-                    let f: any = new Date(a[date])
-                    let s: any = new Date(b[date])
-                    return f - s
-                }
-            }
+        let list = lists.sort(sortFinal('date'))
+        console.log(list)
 
-            let list = lists.sort(sortFinal('date'))
-
-            // 找出最后出现的五个不同的点
-            const finalFivePoints: any = []
-            if (list.length === 1) {
-                finalFivePoints.push(...list)
-            } else {
-                for (let i = list.length - 1; i >= 0; i--) {
-                    if (finalFivePoints.length === 5) break
-                    if (i > 0) {
-                        if (list[i].beforeLonLatStr !== list[i - 1].beforeLonLatStr) {
-                            finalFivePoints.push(list[i])
-                        }
-                    } else {
-                        finalFivePoints.push(list[0])
+        // 找出最后出现的五个不同的点
+        if (list.length === 1) {
+            addressDetail.value.push(...list)
+        } else {
+            for (let i = list.length - 1; i >= 0; i--) {
+                if (addressDetail.value.length === 5) break
+                if (i > 0) {
+                    if (list[i].beforeLonLatStr !== list[i - 1].beforeLonLatStr) {
+                        addressDetail.value.push(list[i])
                     }
-                }
-            }
-            const geocoder = new AMap.Geocoder({
-                city: '010', //城市设为北京，默认：“全国”
-                radius: 1000 //范围，默认：500
-            })
-            for (let i = 0; i < finalFivePoints.length; i++) {
-                geocoder.getAddress(finalFivePoints[i], (status: any, result: any) => {
-                    if (status === 'complete' && result.regeocode) {
-                        const address = result.regeocode.formattedAddress
-                        addressDetail.value.push({
-                            ...finalFivePoints[i],
-                            addressDetail: address
-                        })
-                    } else {
-                        console.error('根据经纬度查询地址失败')
-                    }
-                })
-            }
-            console.log(addressDetail.value)
-
-            // 找出maxLat和lbs.lat两个中的最大值，然后把它赋给maxLat
-            let maxLon = noRepLngLatArrays[0][0]
-            let minLon = noRepLngLatArrays[0][0]
-            let maxLat = noRepLngLatArrays[0][1]
-            let minLat = noRepLngLatArrays[0][1]
-
-            for (let i = 0; i < noRepLngLatArrays.length; i++) {
-                maxLon = Math.max(maxLon, noRepLngLatArrays[i][0])
-                minLon = Math.min(minLon, noRepLngLatArrays[i][0])
-                maxLat = Math.max(maxLat, noRepLngLatArrays[i][1])
-                minLat = Math.min(minLat, noRepLngLatArrays[i][1])
-            }
-            // 绘制地图
-            let markerList = []
-            let pathList = []
-
-            let marker = null
-            for (let i = 0; i < list.length; i++) {
-                if (i !== list.length - 1) {
-                    marker = new AMap.Marker({
-                        position: list[i],
-                        title: formatDate(list[i].date)
-                    })
                 } else {
-                    let endIcon = new AMap.Icon({
-                        // 图标尺寸
-                        size: new AMap.Size(500, 500),
-                        // 图标的取图地址
-                        image: new URL('@/assets/images/truck.png', import.meta.url).href,
-                        // 图标所用图片大小
-                        imageSize: new AMap.Size(40, 40),
-                        // 图标取图偏移量
-                        imageOffset: new AMap.Pixel(0, 0)
-                    })
-                    marker = new AMap.Marker({
-                        position: list[i],
-                        icon: endIcon,
-                        title: formatDate(list[i].date),
-                        offset: new AMap.Pixel(-20, -20)
-                    })
+                    addressDetail.value.push(list[0])
                 }
-                markerList.push(marker)
-                pathList.push(new AMap.LngLat(list[i].lng, list[i].lat))
             }
+        }
+        console.log(addressDetail.value)
 
-            map.value.add(markerList)
-            if (pathList.length > 1) {
-                let finalPath = [
-                    new AMap.LngLat(list[list.length - 1].lng, list[list.length - 1].lat)
-                ]
-                for (let i = list.length - 1; i >= 0; i--) {
-                    if (
-                        list[list.length - 1].lng !== list[i].lng ||
-                        list[list.length - 1].lat !== list[i].lat
-                    ) {
-                        finalPath.unshift(new AMap.LngLat(list[i].lng, list[i].lat))
-                        break
-                    }
-                }
-                let polyline = new AMap.Polyline({
-                    path: pathList,
-                    lineJoin: 'round', //折线拐点连接处样式
-                    showDir: true,
-                    strokeColor: '#3366bb', // 线颜色
-                    strokeWeight: 10 // 线宽
-                })
-                let polyline1 = new AMap.Polyline({
-                    path: finalPath, // 设置最后路径的样式
-                    lineJoin: 'round', //折线拐点连接处样式
-                    showDir: true,
-                    dirColor: 'yellow',
-                    strokeColor: 'green', // 线颜色
-                    strokeWeight: 10 // 线宽
-                })
-                map.value.add(polyline)
-                map.value.add(polyline1)
-            }
+        // 找出maxLat和lbs.lat两个中的最大值，然后把它赋给maxLat
+        let maxLon = noRepLngLatArrays[0][0]
+        let minLon = noRepLngLatArrays[0][0]
+        let maxLat = noRepLngLatArrays[0][1]
+        let minLat = noRepLngLatArrays[0][1]
 
-            const ptSW = new AMap.LngLat(Number(minLon) - 0.001, Number(minLat) - 0.001)
-            const ptNE = new AMap.LngLat(Number(maxLon) + 0.001, Number(maxLat) + 0.001)
-            const bounds = new AMap.Bounds(ptSW, ptNE) //描叙一个矩形的地理坐标访问
-            map.value.setBounds(bounds)
-        })
+        for (let i = 0; i < noRepLngLatArrays.length; i++) {
+            maxLon = Math.max(maxLon, noRepLngLatArrays[i][0])
+            minLon = Math.min(minLon, noRepLngLatArrays[i][0])
+            maxLat = Math.max(maxLat, noRepLngLatArrays[i][1])
+            minLat = Math.min(minLat, noRepLngLatArrays[i][1])
+        }
+        // 绘制地图
+
+        let marker = null
+        for (let i = 0; i < list.length; i++) {
+            let lng = list[i].lon
+            let lat = list[i].lat
+
+            marker = { lng, lat, title: formatDate(list[i].date) }
+            markerList.value.push(marker)
+            bdPolyline.value.push({ lng: list[i].lon, lat: list[i].lat })
+        }
+
+        console.log(markerList.value)
+        console.log(bdPolyline.value)
+
+        const ptSW = new BaiduMapRef.value.BMap.Point(
+            Number(minLon) - 0.0001,
+            Number(minLat) - 0.0001
+        )
+        const ptNE = new BaiduMapRef.value.BMap.Point(
+            Number(maxLon) + 0.0001,
+            Number(maxLat) + 0.0001
+        )
+        const bounds = new BaiduMapRef.value.BMap.Bounds(ptSW, ptNE) //描叙一个矩形的地理坐标访问
+        BaiduMapRef.value.map.setViewport(bounds)
     })
 }
+
+// #endregion ********** end 处理百度地图 **********
+
+// #region ********** start 处理高德地图 **********
+// 高德地图
+// const map: any = ref(null) // 高德地图实例
+// const addressDetail: any = ref([]) // 最后出现的五个位置：详细地址
+// const loadMap = (lbsList: any) => {
+//     gdMap.then((AMap) => {
+//         map.value = new AMap.Map('map_container', {
+//             // 设置地图容器id
+//             viewMode: '3D', // 是否为3D地图模式
+//             zoom: 11, // 初始化地图级别
+//             center: [116.397428, 39.90923] // 初始化地图中心点位置
+//         })
+
+//         // 比例尺
+//         const scale = new AMap.Scale({
+//             visible: true
+//         })
+
+//         // 放大缩小
+//         const toolBar = new AMap.ToolBar({
+//             visible: true,
+//             position: {
+//                 top: '110px',
+//                 right: '40px'
+//             }
+//         })
+
+//         // 指南针
+//         const controlBar = new AMap.ControlBar({
+//             visible: true,
+//             position: {
+//                 top: '10px',
+//                 right: '10px'
+//             }
+//         })
+//         map.value.addControl(scale)
+//         map.value.addControl(toolBar)
+//         map.value.addControl(controlBar)
+
+//         // 没有就不画点
+//         if (!map.value || !lbsList || !lbsList.length) {
+//             return
+//         }
+
+//         // 坐标转换
+//         gdMapXYConvertorEx(AMap, lbsList, (lists: any, noRepLngLatArrays: any) => {
+//             function sortFinal(date: any) {
+//                 return function (a: any, b: any) {
+//                     let f: any = new Date(a[date])
+//                     let s: any = new Date(b[date])
+//                     return f - s
+//                 }
+//             }
+
+//             let list = lists.sort(sortFinal('date'))
+
+//             // 找出最后出现的五个不同的点
+//             const finalFivePoints: any = []
+//             if (list.length === 1) {
+//                 finalFivePoints.push(...list)
+//             } else {
+//                 for (let i = list.length - 1; i >= 0; i--) {
+//                     if (finalFivePoints.length === 5) break
+//                     if (i > 0) {
+//                         if (list[i].beforeLonLatStr !== list[i - 1].beforeLonLatStr) {
+//                             finalFivePoints.push(list[i])
+//                         }
+//                     } else {
+//                         finalFivePoints.push(list[0])
+//                     }
+//                 }
+//             }
+//             const geocoder = new AMap.Geocoder({
+//                 city: '010', //城市设为北京，默认：“全国”
+//                 radius: 1000 //范围，默认：500
+//             })
+//             for (let i = 0; i < finalFivePoints.length; i++) {
+//                 geocoder.getAddress(finalFivePoints[i], (status: any, result: any) => {
+//                     if (status === 'complete' && result.regeocode) {
+//                         const address = result.regeocode.formattedAddress
+//                         addressDetail.value.push({
+//                             ...finalFivePoints[i],
+//                             addressDetail: address
+//                         })
+//                     } else {
+//                         console.error('根据经纬度查询地址失败')
+//                     }
+//                 })
+//             }
+//             console.log(addressDetail.value)
+
+//             // 找出maxLat和lbs.lat两个中的最大值，然后把它赋给maxLat
+//             let maxLon = noRepLngLatArrays[0][0]
+//             let minLon = noRepLngLatArrays[0][0]
+//             let maxLat = noRepLngLatArrays[0][1]
+//             let minLat = noRepLngLatArrays[0][1]
+
+//             for (let i = 0; i < noRepLngLatArrays.length; i++) {
+//                 maxLon = Math.max(maxLon, noRepLngLatArrays[i][0])
+//                 minLon = Math.min(minLon, noRepLngLatArrays[i][0])
+//                 maxLat = Math.max(maxLat, noRepLngLatArrays[i][1])
+//                 minLat = Math.min(minLat, noRepLngLatArrays[i][1])
+//             }
+//             // 绘制地图
+//             let markerList = []
+//             let pathList = []
+
+//             let marker = null
+//             for (let i = 0; i < list.length; i++) {
+//                 if (i !== list.length - 1) {
+//                     marker = new AMap.Marker({
+//                         position: list[i],
+//                         title: formatDate(list[i].date)
+//                     })
+//                 } else {
+//                     let endIcon = new AMap.Icon({
+//                         // 图标尺寸
+//                         size: new AMap.Size(500, 500),
+//                         // 图标的取图地址
+//                         image: new URL('@/assets/images/truck.png', import.meta.url).href,
+//                         // 图标所用图片大小
+//                         imageSize: new AMap.Size(40, 40),
+//                         // 图标取图偏移量
+//                         imageOffset: new AMap.Pixel(0, 0)
+//                     })
+//                     marker = new AMap.Marker({
+//                         position: list[i],
+//                         icon: endIcon,
+//                         title: formatDate(list[i].date),
+//                         offset: new AMap.Pixel(-20, -20)
+//                     })
+//                 }
+//                 markerList.push(marker)
+//                 pathList.push(new AMap.LngLat(list[i].lng, list[i].lat))
+//             }
+
+//             map.value.add(markerList)
+//             if (pathList.length > 1) {
+//                 let finalPath = [
+//                     new AMap.LngLat(list[list.length - 1].lng, list[list.length - 1].lat)
+//                 ]
+//                 for (let i = list.length - 1; i >= 0; i--) {
+//                     if (
+//                         list[list.length - 1].lng !== list[i].lng ||
+//                         list[list.length - 1].lat !== list[i].lat
+//                     ) {
+//                         finalPath.unshift(new AMap.LngLat(list[i].lng, list[i].lat))
+//                         break
+//                     }
+//                 }
+//                 let polyline = new AMap.Polyline({
+//                     path: pathList,
+//                     lineJoin: 'round', //折线拐点连接处样式
+//                     showDir: true,
+//                     strokeColor: '#3366bb', // 线颜色
+//                     strokeWeight: 10 // 线宽
+//                 })
+//                 let polyline1 = new AMap.Polyline({
+//                     path: finalPath, // 设置最后路径的样式
+//                     lineJoin: 'round', //折线拐点连接处样式
+//                     showDir: true,
+//                     dirColor: 'yellow',
+//                     strokeColor: 'green', // 线颜色
+//                     strokeWeight: 10 // 线宽
+//                 })
+//                 map.value.add(polyline)
+//                 map.value.add(polyline1)
+//             }
+
+//             const ptSW = new AMap.LngLat(Number(minLon) - 0.001, Number(minLat) - 0.001)
+//             const ptNE = new AMap.LngLat(Number(maxLon) + 0.001, Number(maxLat) + 0.001)
+//             const bounds = new AMap.Bounds(ptSW, ptNE) //描叙一个矩形的地理坐标访问
+//             map.value.setBounds(bounds)
+//         })
+//     })
+// }
 // #endregion ********** end 处理高德地图 **********
 
 // #region ********** start 处理echarts图表 **********
@@ -875,7 +997,9 @@ const drawVolCsqCharts = () => {
 const close = () => {
     mapLoading.value = false // 地图加载样式
     dataEchartsInfo.value = [] // echarts 图表信息
-    map.value = null // 高德地图实例
+    markerList.value = [] // 百度地图点集合
+    bdPolyline.value = [] // 百度地图路径点集合
+    // map.value = null // 高德地图实例
     addressDetail.value = [] // 最后出现的五个位置: 详细地址
     curDataEcharts.value = 0 // 当前echarts下标
     dataEchartsDom.value = null // echarts dom
@@ -922,6 +1046,11 @@ const close = () => {
         .map-container {
             flex: 1;
             height: 100%;
+
+            .bm-view {
+                width: 100%;
+                height: 100%;
+            }
         }
         .echarts-container {
             flex: 0 0 300px;
