@@ -23,6 +23,7 @@
             <ps-search-table
                 ref="ps_table"
                 rowKey="node_id"
+                tableName="instrumentDataManagement"
                 :loading="loading"
                 :border="true"
                 :fieldLists="fieldLists"

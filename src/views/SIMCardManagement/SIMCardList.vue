@@ -1,6 +1,7 @@
 <template>
     <ps-search-table
         rowKey="node_id"
+        tableName="SIMCardList"
         :border="true"
         :loading="loading"
         :fieldLists="fieldLists"

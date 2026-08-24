@@ -1,5 +1,6 @@
 <template>
     <ps-search-table
+        tableName="companyOwnershipRelationship"
         :hasSearch="false"
         :hasPagination="false"
         :loading="loading"

@@ -248,6 +248,11 @@ const props = defineProps({
         type: Array as any,
         default: []
     },
+    // 表格名称
+    tableName: {
+        type: String,
+        default: ''
+    },
     // 表格数据
     tableData: {
         type: Array as any,
@@ -481,7 +486,7 @@ watch(
 
 // 判断搜索参数是否为空
 const isSearchEmpty = () => {
-    if (sessionStorage.getItem(`${routerName}_search`)) {
+    if (sessionStorage.getItem(`${routerName}_search_${props.tableName}`)) {
         const params = JSON.parse(sessionStorage.getItem(`${routerName}_search`) as any)
         const values = Object.values(params)
         const data = values.join('')

@@ -1,5 +1,6 @@
 <template>
     <ps-search-table
+        tableName="companyDataManagement"
         :border="true"
         :loading="loading"
         :fieldLists="fieldLists"

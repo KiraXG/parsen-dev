@@ -11,6 +11,7 @@
     >
         <ps-search-table
             ref="ps_table"
+            tableName="alarmRecordDetailDialog"
             :tableData="tableData"
             :fieldLists="fieldLists"
             :border="true"

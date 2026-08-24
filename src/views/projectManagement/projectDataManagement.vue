@@ -21,6 +21,7 @@
         <div class="tree-table-right projectDataManagement-right">
             <ps-search-table
                 rowKey="node_id"
+                tableName="projectDataManagement"
                 :loading="loading"
                 :border="true"
                 :labelWidth="100"

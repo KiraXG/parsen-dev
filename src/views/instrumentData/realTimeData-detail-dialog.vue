@@ -230,6 +230,7 @@
                 <div v-show="selectChartsTable == '2'" style="height: 670px">
                     <ps-search-table
                         rowKey="node_data_id"
+                        tableName="realTimeData_detail_dialog"
                         :border="true"
                         :hasSelection="true"
                         :hasIndex="true"

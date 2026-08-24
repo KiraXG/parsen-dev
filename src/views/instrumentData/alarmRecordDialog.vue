@@ -10,6 +10,7 @@
         @close="close"
     >
         <ps-search-table
+            tableName="alarmRecordDialog"
             :tableData="tableData"
             :fieldLists="fieldLists"
             :border="true"
